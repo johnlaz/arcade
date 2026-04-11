@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🦋 Flutter Fly!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#1a0a2e;--panel:rgba(255,255,255,.07);--pb:rgba(255,255,255,.15);
+    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  body{background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
+    background-image:radial-gradient(ellipse at 25% 25%,rgba(199,125,255,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 75% 75%,rgba(0,229,255,.1) 0%,transparent 50%)}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.4) 0%,transparent 100%),
+      radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.35) 0%,transparent 100%)}
+  header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px 6px;z-index:10}
+  .back{background:var(--panel);border:2px solid var(--pb);color:#C8B8FF;border-radius:50%;
+    width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .title{font-family:'Fredoka One',cursive;font-size:26px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hud{width:100%;max-width:480px;display:flex;gap:8px;padding:0 16px 8px;z-index:10}
+  .pill{flex:1;background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:6px 8px;text-align:center}
+  .pill .lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#C8B8FF;margin-bottom:2px}
+  .pill .val{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold)}
+  #hv{color:var(--cyan)}
+  .wrap{width:100%;max-width:480px;padding:0 16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10}
+  #gc{border-radius:18px;border:3px solid var(--purple);
+    box-shadow:0 0 30px rgba(199,125,255,.4),0 0 70px rgba(199,125,255,.15);
+    display:block;max-width:100%;touch-action:none}
+  .flap-btn{width:100%;max-width:420px;height:80px;border:none;border-radius:24px;cursor:pointer;
+    background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;
+    font-family:'Fredoka One',cursive;font-size:26px;
+    box-shadow:0 8px 0 rgba(0,0,0,.4);transition:transform .08s,box-shadow .08s;user-select:none}
+  .flap-btn:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  #overlay{position:fixed;inset:0;background:rgba(10,5,20,.9);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+  #overlay.hidden{display:none}
+  .ocard{background:linear-gradient(135deg,#2d1b4e,#1a0a2e);border:3px solid var(--purple);
+    border-radius:28px;padding:30px 34px;text-align:center;
+    box-shadow:0 0 60px rgba(199,125,255,.35);max-width:340px;width:90%}
+  .oem{font-size:60px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
+  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  .otitle{font-family:'Fredoka One',cursive;font-size:32px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+  .osub{font-size:14px;color:#C8B8FF;margin-bottom:14px;line-height:1.55}
+  .oscr{font-family:'Fredoka One',cursive;font-size:24px;color:var(--gold);margin-bottom:20px}
+  .opbtn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:22px;
+    padding:14px 40px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%}
+  .opbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .particle{position:fixed;pointer-events:none;font-size:22px;z-index:200;animation:fup .8s ease-out forwards}
+  @keyframes fup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-90px)}}
+  .sp{height:20px}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://johnlaz.github.io" class="back">🏠</a>
+  <div class="title">🦋 Flutter Fly!</div>
+  <div style="width:44px"></div>
+</header>
+<div class="hud">
+  <div class="pill"><div class="lbl">⭐ Score</div><div class="val" id="sc">0</div></div>
+  <div class="pill"><div class="lbl">🏆 Best</div><div class="val" id="hv">0</div></div>
+  <div class="pill"><div class="lbl">💎 Gems</div><div class="val" id="gm">0</div></div>
+</div>
+<div class="wrap">
+  <canvas id="gc"></canvas>
+  <button class="flap-btn" id="flap" onclick="flap()">🦋 FLAP!</button>
+  <div class="sp"></div>
+</div>
+<div id="overlay">
+  <div class="ocard">
+    <span class="oem" id="oem">🦋</span>
+    <div class="otitle" id="otitle">Flutter Fly!</div>
+    <div class="osub" id="osub">Tap 🦋 FLAP or anywhere to fly! Squeeze through the gaps without hitting the pipes!</div>
+    <div class="oscr" id="oscr"></div>
+    <button class="opbtn" id="obtn" onclick="startGame()">🎮 Flutter Away!</button>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const SZ=Math.floor(Math.min(window.innerWidth-32,448));
+canvas.width=SZ; canvas.height=Math.round(SZ*1.3);
+const CW=canvas.width, CH=canvas.height;
+
+const GRAVITY=0.35, FLAP_FORCE=-7.5, PIPE_SPD=3, GAP=Math.round(CH*0.28);
+const PIPE_W=Math.round(CW*0.13), PIPE_INTERVAL=Math.round(CW*0.55);
+const BIRD_EMOJIS=['🦋','🐦','🦜','🐤','🦅'];
+let birdEmoji='🦋';
+
+// Stars
+const STARS=Array.from({length:50},()=>({x:Math.random()*CW,y:Math.random()*CH,r:Math.random()*1.5+.4}));
+// Clouds
+const CLOUDS=Array.from({length:4},(_,i)=>({x:i*(CW/3)+Math.random()*80,y:20+Math.random()*(CH*.3),spd:.6+Math.random()*.4}));
+
+let bird,pipes,gems,score,highScore,gemCount,gameRunning,gamePaused;
+let raf,lastTs=0;
+
+function initGame(){
+  birdEmoji=BIRD_EMOJIS[Math.floor(Math.random()*BIRD_EMOJIS.length)];
+  bird={x:CW*0.25,y:CH/2,vy:0,rot:0,flapping:false};
+  pipes=[];gems=[];score=0;gemCount=0;gameRunning=false;
+  // Pre-place first pipe
+  pipes.push(makePipe(CW*0.8));
+}
+
+function makePipe(x){
+  const gapY=CH*0.2+Math.random()*(CH*0.5);
+  return {x,gapY,scored:false};
+}
+
+function startGame(){
+  document.getElementById('overlay').classList.add('hidden');
+  highScore=parseInt(localStorage.getItem('flutterHS')||'0');
+  initGame();updateHUD();
+  gameRunning=true;
+  lastTs=performance.now();
+  if(raf)cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+
+function flap(){
+  if(!gameRunning){startGame();return;}
+  bird.vy=FLAP_FORCE;bird.flapping=true;
+  setTimeout(()=>bird.flapping=false,120);
+  sfxFlap();
+  try{if(actx&&actx.state==='suspended')actx.resume()}catch(e){}
+}
+
+function loop(ts){
+  if(!gameRunning)return;
+  const dt=Math.min(ts-lastTs,50);lastTs=ts;
+  update(dt);draw();
+  raf=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  const sc=dt/16.67;
+  bird.vy+=GRAVITY*sc;
+  bird.vy=Math.min(bird.vy,12);
+  bird.y+=bird.vy*sc;
+  bird.rot=Math.min(Math.PI/3,Math.max(-Math.PI/4,bird.vy*0.08));
+
+  // Clouds
+  CLOUDS.forEach(c=>{c.x-=c.spd*sc;if(c.x<-80)c.x=CW+80;});
+
+  // Pipes
+  if(pipes.length===0||pipes[pipes.length-1].x<CW-PIPE_INTERVAL){
+    pipes.push(makePipe(CW+PIPE_W));
+    // Maybe add gem
+    if(Math.random()<0.6){
+      const p=pipes[pipes.length-1];
+      gems.push({x:p.x+PIPE_W+10,y:p.gapY,r:10,collected:false});
+    }
+  }
+  pipes.forEach(p=>p.x-=PIPE_SPD*sc);
+  pipes=pipes.filter(p=>p.x>-PIPE_W-10);
+
+  gems.forEach(g=>g.x-=PIPE_SPD*sc);
+  gems=gems.filter(g=>g.x>-20&&!g.collected);
+
+  // Score
+  pipes.forEach(p=>{
+    if(!p.scored&&p.x+PIPE_W<bird.x){
+      p.scored=true;score++;updateHUD();sfxScore();
+      // Increase speed slightly
+    }
+  });
+
+  // Gem collect
+  gems.forEach(g=>{
+    if(!g.collected&&Math.hypot(bird.x-g.x,bird.y-g.y)<18){
+      g.collected=true;gemCount++;score+=3;updateHUD();sfxGem();
+      spawnPtcl('💎',bird.x,bird.y);
+    }
+  });
+
+  // Collision
+  const br=14;
+  if(bird.y-br<0||bird.y+br>CH){die();return;}
+  for(const p of pipes){
+    const inX=bird.x+br>p.x&&bird.x-br<p.x+PIPE_W;
+    const inGap=bird.y+br>p.gapY-GAP/2&&bird.y-br<p.gapY+GAP/2;
+    if(inX&&!inGap){die();return;}
+  }
+}
+
+function die(){
+  gameRunning=false;
+  if(score>highScore){highScore=score;localStorage.setItem('flutterHS',highScore);}
+  sfxDie();
+  setTimeout(()=>showOverlay('💥','Bonk!','So close! Try again!','⭐ '+score+' score  💎 '+gemCount+' gems','🔄 Flutter Again!',startGame),500);
+}
+
+function updateHUD(){
+  document.getElementById('sc').textContent=score;
+  document.getElementById('hv').textContent=highScore;
+  document.getElementById('gm').textContent=gemCount;
+}
+
+function showOverlay(em,ti,su,sc,bt,cb){
+  document.getElementById('oem').textContent=em;
+  document.getElementById('otitle').textContent=ti;
+  document.getElementById('osub').textContent=su;
+  document.getElementById('oscr').textContent=sc;
+  const b=document.getElementById('obtn');b.textContent=bt;b.onclick=cb||startGame;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+// ── DRAW ───────────────────────────────────────────────────────
+function draw(){
+  // Sky gradient
+  const sky=ctx.createLinearGradient(0,0,0,CH);
+  sky.addColorStop(0,'#0d0520');sky.addColorStop(1,'#1a0a2e');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,CW,CH);
+
+  // Stars
+  STARS.forEach(s=>{
+    ctx.fillStyle='rgba(255,255,255,.5)';
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+  });
+
+  // Clouds
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  CLOUDS.forEach(c=>{
+    ctx.beginPath();ctx.ellipse(c.x,c.y,50,22,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(c.x+30,c.y-10,35,18,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(c.x-25,c.y-8,30,16,0,0,Math.PI*2);ctx.fill();
+  });
+
+  // Pipes
+  pipes.forEach(p=>{
+    // Top pipe
+    drawPipe(p.x,0,PIPE_W,p.gapY-GAP/2,true);
+    // Bottom pipe
+    drawPipe(p.x,p.gapY+GAP/2,PIPE_W,CH-(p.gapY+GAP/2),false);
+    // Gap hint
+    ctx.strokeStyle='rgba(105,255,71,.15)';ctx.lineWidth=2;ctx.setLineDash([6,8]);
+    ctx.beginPath();ctx.moveTo(p.x,p.gapY-GAP/2);ctx.lineTo(p.x+PIPE_W,p.gapY-GAP/2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(p.x,p.gapY+GAP/2);ctx.lineTo(p.x+PIPE_W,p.gapY+GAP/2);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Gems
+  gems.forEach(g=>{
+    const pulse=0.85+Math.sin(Date.now()/200)*0.15;
+    ctx.font=`${20*pulse}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='#00E5FF';ctx.shadowBlur=10;
+    ctx.fillText('💎',g.x,g.y);ctx.shadowBlur=0;
+  });
+
+  // Bird
+  ctx.save();
+  ctx.translate(bird.x,bird.y);
+  ctx.rotate(bird.rot);
+  const bScale=bird.flapping?1.15:1;
+  ctx.scale(bScale,bScale);
+  ctx.font='32px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='#FFD700';ctx.shadowBlur=12;
+  ctx.fillText(birdEmoji,0,0);
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+  // Score on canvas
+  if(gameRunning){
+    ctx.font=`bold ${Math.round(CW*.08)}px "Fredoka One",cursive`;
+    ctx.fillStyle='rgba(255,255,255,.7)';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(score,CW/2,12);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
+}
+
+function drawPipe(x,y,w,h,isTop){
+  const g=ctx.createLinearGradient(x,0,x+w,0);
+  g.addColorStop(0,'#4a1fcc');g.addColorStop(0.4,'#7c3aed');g.addColorStop(1,'#4a1fcc');
+  ctx.fillStyle=g;ctx.shadowColor='#C77DFF';ctx.shadowBlur=8;
+  ctx.fillRect(x,y,w,h);
+  // Cap
+  const capH=16,capW=w+8;
+  ctx.fillStyle='#6d3aff';
+  ctx.fillRect(x-4,isTop?y+h-capH:y,capW,capH);
+  ctx.shadowBlur=0;
+}
+
+// ── AUDIO ───────────────────────────────────────────────────────
+let actx;
+function beep(f,d,t,v){
+  try{
+    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);o.type=t||'sine';o.frequency.value=f;
+    g.gain.setValueAtTime(v||.1,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);
+  }catch(e){}
+}
+function sfxFlap(){beep(380,.05,'sine',.09)}
+function sfxScore(){beep(660,.06,'square',.1);setTimeout(()=>beep(880,.06,'square',.08),70)}
+function sfxGem(){beep(1000,.08,'sine',.1)}
+function sfxDie(){[300,240,180,140].forEach((f,i)=>setTimeout(()=>beep(f,.1,'sawtooth',.15),i*80))}
+
+// ── INPUT ────────────────────────────────────────────────────────
+canvas.addEventListener('touchstart',e=>{e.preventDefault();flap()},{passive:false});
+canvas.addEventListener('click',flap);
+document.addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();flap();}});
+
+function spawnPtcl(e,cx,cy){
+  const el=document.createElement('div');el.className='particle';el.textContent=e;
+  const r=canvas.getBoundingClientRect();
+  el.style.left=(r.left+cx)+'px';el.style.top=(r.top+cy)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),800);
+}
+
+initGame();draw();
+</script>
+</body>
+</html>

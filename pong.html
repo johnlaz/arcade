@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🏓 Paddle Battle!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#1a0a2e;--panel:rgba(255,255,255,.07);--pb:rgba(255,255,255,.15);
+    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF;--orange:#FF9500}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  body{background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
+    background-image:radial-gradient(ellipse at 20% 20%,rgba(199,125,255,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 80% 80%,rgba(0,229,255,.1) 0%,transparent 50%)}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.4) 0%,transparent 100%),
+      radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.35) 0%,transparent 100%)}
+  header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px 6px;z-index:10}
+  .back{background:var(--panel);border:2px solid var(--pb);color:#C8B8FF;border-radius:50%;
+    width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .title{font-family:'Fredoka One',cursive;font-size:26px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hud{width:100%;max-width:480px;display:flex;gap:8px;padding:0 16px 8px;z-index:10}
+  .pill{flex:1;background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:6px 8px;text-align:center}
+  .pill .lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#C8B8FF;margin-bottom:2px}
+  .pill .val{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold)}
+  #sv{color:var(--cyan)}
+  .wrap{width:100%;max-width:480px;padding:0 16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10}
+  #gc{border-radius:18px;border:3px solid var(--purple);
+    box-shadow:0 0 30px rgba(199,125,255,.4),0 0 70px rgba(199,125,255,.15);
+    display:block;max-width:100%;touch-action:none}
+  .mode-row{display:flex;gap:8px;width:100%}
+  .mode-btn{flex:1;height:48px;border:2px solid var(--pb);border-radius:14px;
+    font-family:'Fredoka One',cursive;font-size:15px;cursor:pointer;
+    background:var(--panel);color:#C8B8FF;transition:all .15s}
+  .mode-btn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:#fff}
+  .speed-row{display:flex;align-items:center;gap:10px;width:100%;
+    background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:10px 16px}
+  .speed-row label{font-family:'Fredoka One',cursive;font-size:15px;color:#C8B8FF;white-space:nowrap}
+  .speed-row input{flex:1;accent-color:var(--pink);cursor:pointer}
+  .spv{font-family:'Fredoka One',cursive;font-size:15px;color:var(--gold);min-width:28px;text-align:right}
+  .brow{display:flex;gap:12px;width:100%;justify-content:center}
+  .abtn{flex:1;max-width:180px;height:56px;border:none;border-radius:18px;
+    font-family:'Fredoka One',cursive;font-size:17px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    box-shadow:0 6px 0 rgba(0,0,0,.4);user-select:none;transition:transform .1s,box-shadow .1s}
+  .abtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  #pb{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff}
+  #overlay{position:fixed;inset:0;background:rgba(10,5,20,.9);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+  #overlay.hidden{display:none}
+  .ocard{background:linear-gradient(135deg,#2d1b4e,#1a0a2e);border:3px solid var(--purple);
+    border-radius:28px;padding:30px 34px;text-align:center;
+    box-shadow:0 0 60px rgba(199,125,255,.35);max-width:340px;width:90%}
+  .oem{font-size:60px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
+  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  .otitle{font-family:'Fredoka One',cursive;font-size:32px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+  .osub{font-size:14px;color:#C8B8FF;margin-bottom:14px;line-height:1.55}
+  .oscr{font-family:'Fredoka One',cursive;font-size:24px;color:var(--gold);margin-bottom:20px}
+  .opbtn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:22px;
+    padding:14px 40px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%}
+  .opbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .particle{position:fixed;pointer-events:none;font-size:22px;z-index:200;animation:fup .8s ease-out forwards}
+  @keyframes fup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-90px)}}
+  .sp{height:20px}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://johnlaz.github.io" class="back">🏠</a>
+  <div class="title">🏓 Paddle Battle!</div>
+  <div style="width:44px"></div>
+</header>
+<div class="hud">
+  <div class="pill"><div class="lbl">🟣 You</div><div class="val" id="ps">0</div></div>
+  <div class="pill"><div class="lbl">🏓 Rally</div><div class="val" id="sv">0</div></div>
+  <div class="pill"><div class="lbl">🤖 CPU</div><div class="val" id="cs">0</div></div>
+</div>
+<div class="wrap">
+  <canvas id="gc"></canvas>
+  <div class="mode-row">
+    <button class="mode-btn active" id="m1" onclick="setMode('ai')">🤖 vs CPU</button>
+    <button class="mode-btn" id="m2" onclick="setMode('2p')">👫 2 Players</button>
+  </div>
+  <div class="speed-row">
+    <label>🐢 Ball</label>
+    <input type="range" id="sl" min="1" max="5" value="2">
+    <div class="spv" id="slv">2</div>
+    <label>⚡</label>
+  </div>
+  <div class="brow">
+    <button class="abtn" id="pb" onclick="togglePause()">⏸ PAUSE</button>
+  </div>
+  <div class="sp"></div>
+</div>
+<div id="overlay">
+  <div class="ocard">
+    <span class="oem" id="oem">🏓</span>
+    <div class="otitle" id="otitle">Paddle Battle!</div>
+    <div class="osub" id="osub">Drag your side of the screen to move your paddle! First to 7 points wins! 🏆</div>
+    <div class="oscr" id="oscr"></div>
+    <button class="opbtn" id="obtn" onclick="startGame()">🏓 Serve!</button>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const SZ=Math.floor(Math.min(window.innerWidth-32,448));
+canvas.width=SZ; canvas.height=Math.round(SZ*1.15);
+const CW=canvas.width, CH=canvas.height;
+const WIN_SCORE=7;
+
+const BALL_SPEEDS=[3.5,5,7,9,12];
+let spdIdx=1;
+document.getElementById('sl').addEventListener('input',function(){
+  spdIdx=this.value-1;document.getElementById('slv').textContent=this.value;
+  if(gameRunning)resetBall();
+});
+
+let mode='ai';
+function setMode(m){
+  mode=m;
+  ['m1','m2'].forEach(id=>document.getElementById(id).classList.toggle('active',document.getElementById(id).id===(m==='ai'?'m1':'m2')));
+  document.getElementById('osub').textContent=m==='ai'
+    ?'Drag your side of the screen to move your paddle! First to 7 points wins! 🏆'
+    :'Two players — each drag your own half! First to 7 wins! 🏆';
+}
+
+const PAD_W=Math.round(CW*0.16), PAD_H=Math.round(CH*0.015);
+const BALL_R=Math.round(CW*0.03);
+
+let player={x:CW/2,y:CH-PAD_H*3};
+let cpu={x:CW/2,y:PAD_H*3};
+let ball,pScore,cScore,rally;
+let gameRunning=false,gamePaused=false;
+let raf,lastTs=0;
+
+// Trail
+let trail=[];
+
+function resetBall(dir=1){
+  const spd=BALL_SPEEDS[spdIdx];
+  const ang=-Math.PI/2*dir+(Math.random()-.5)*0.8;
+  ball={x:CW/2,y:CH/2,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd*dir};
+  trail=[];
+}
+
+function startGame(){
+  document.getElementById('overlay').classList.add('hidden');
+  pScore=0;cScore=0;rally=0;
+  player.x=CW/2;cpu.x=CW/2;
+  resetBall(1);updateHUD();
+  gameRunning=true;gamePaused=false;
+  document.getElementById('pb').textContent='⏸ PAUSE';
+  lastTs=performance.now();
+  if(raf)cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+
+function togglePause(){
+  if(!gameRunning)return;
+  gamePaused=!gamePaused;
+  document.getElementById('pb').textContent=gamePaused?'▶️ GO!':'⏸ PAUSE';
+  if(!gamePaused){lastTs=performance.now();raf=requestAnimationFrame(loop);}
+}
+
+function loop(ts){
+  if(!gameRunning||gamePaused)return;
+  const dt=Math.min(ts-lastTs,50);lastTs=ts;
+  update(dt);draw();
+  raf=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  const sc=dt/16.67;
+
+  // Ball
+  trail.push({x:ball.x,y:ball.y});
+  if(trail.length>12)trail.shift();
+  ball.x+=ball.vx*sc;ball.y+=ball.vy*sc;
+
+  // Wall bounce
+  if(ball.x-BALL_R<0){ball.x=BALL_R;ball.vx=Math.abs(ball.vx);sfxBounce();}
+  if(ball.x+BALL_R>CW){ball.x=CW-BALL_R;ball.vx=-Math.abs(ball.vx);sfxBounce();}
+
+  // Player paddle (bottom)
+  if(ball.vy>0&&ball.y+BALL_R>=player.y&&ball.y+BALL_R<=player.y+PAD_H+4
+      &&ball.x>=player.x-PAD_W/2&&ball.x<=player.x+PAD_W/2){
+    const hit=(ball.x-(player.x-PAD_W/2))/PAD_W-.5;
+    const spd=Math.hypot(ball.vx,ball.vy);
+    const ang=-Math.PI/2+hit*1.2;
+    ball.vx=Math.cos(ang)*spd*1.04;
+    ball.vy=-Math.abs(Math.sin(ang)*spd*1.04);
+    ball.y=player.y-BALL_R;
+    rally++;sfxPaddle();updateHUD();
+  }
+
+  // CPU/P2 paddle (top)
+  if(ball.vy<0&&ball.y-BALL_R<=cpu.y+PAD_H&&ball.y-BALL_R>=cpu.y-4
+      &&ball.x>=cpu.x-PAD_W/2&&ball.x<=cpu.x+PAD_W/2){
+    const hit=(ball.x-(cpu.x-PAD_W/2))/PAD_W-.5;
+    const spd=Math.hypot(ball.vx,ball.vy);
+    const ang=Math.PI/2+hit*1.2;
+    ball.vx=Math.cos(ang)*spd*1.04;
+    ball.vy=Math.abs(Math.sin(ang)*spd*1.04);
+    ball.y=cpu.y+PAD_H+BALL_R;
+    rally++;sfxPaddle();updateHUD();
+  }
+
+  // AI for CPU paddle
+  if(mode==='ai'){
+    const aiSpd=2.5+spdIdx*.6;
+    const diff=ball.x-cpu.x;
+    cpu.x+=Math.sign(diff)*Math.min(Math.abs(diff),aiSpd)*sc;
+    cpu.x=Math.max(PAD_W/2,Math.min(CW-PAD_W/2,cpu.x));
+  }
+
+  // Score
+  if(ball.y-BALL_R>CH){
+    cScore++;sfxScore(false);rally=0;updateHUD();
+    spawnPtcl('😅',ball.x,ball.y);
+    if(cScore>=WIN_SCORE){endGame(false);return;}
+    setTimeout(()=>resetBall(1),600);ball.x=CW/2;ball.y=CH/2;ball.vx=0;ball.vy=0;
+  }
+  if(ball.y+BALL_R<0){
+    pScore++;sfxScore(true);rally=0;updateHUD();
+    spawnPtcl('⭐',ball.x,ball.y+BALL_R);
+    if(pScore>=WIN_SCORE){endGame(true);return;}
+    setTimeout(()=>resetBall(-1),600);ball.x=CW/2;ball.y=CH/2;ball.vx=0;ball.vy=0;
+  }
+}
+
+function endGame(playerWon){
+  gameRunning=false;
+  showOverlay(playerWon?'🏆':'😅',playerWon?'You Win!':'CPU Wins!',
+    playerWon?'Amazing! You crushed it!':'So close! Try again!',
+    `🟣 ${pScore} — ${cScore} 🤖`,'🔄 Rematch!',startGame);
+}
+
+function updateHUD(){
+  document.getElementById('ps').textContent=pScore;
+  document.getElementById('cs').textContent=cScore;
+  document.getElementById('sv').textContent=rally;
+}
+
+function showOverlay(em,ti,su,sc,bt,cb){
+  document.getElementById('oem').textContent=em;
+  document.getElementById('otitle').textContent=ti;
+  document.getElementById('osub').textContent=su;
+  document.getElementById('oscr').textContent=sc;
+  const b=document.getElementById('obtn');b.textContent=bt;b.onclick=cb||startGame;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+// ── DRAW ──────────────────────────────────────────────────────────
+function draw(){
+  ctx.fillStyle='#080412';ctx.fillRect(0,0,CW,CH);
+
+  // Centre dashed line
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=2;ctx.setLineDash([12,10]);
+  ctx.beginPath();ctx.moveTo(0,CH/2);ctx.lineTo(CW,CH/2);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Zone tints
+  ctx.fillStyle='rgba(199,125,255,.04)';ctx.fillRect(0,0,CW,CH/2);
+  ctx.fillStyle='rgba(0,229,255,.04)';ctx.fillRect(0,CH/2,CW,CH/2);
+
+  // Ball trail
+  trail.forEach((t,i)=>{
+    const alpha=(i/trail.length)*0.4;
+    const r=BALL_R*(i/trail.length)*0.8;
+    ctx.fillStyle=`rgba(255,215,0,${alpha})`;
+    ctx.beginPath();ctx.arc(t.x,t.y,r,0,Math.PI*2);ctx.fill();
+  });
+
+  // Ball
+  const bg=ctx.createRadialGradient(ball.x-BALL_R*.3,ball.y-BALL_R*.3,BALL_R*.1,ball.x,ball.y,BALL_R);
+  bg.addColorStop(0,'#fffde7');bg.addColorStop(.4,'#FFD700');bg.addColorStop(1,'#ff9500');
+  ctx.fillStyle=bg;ctx.shadowColor='#FFD700';ctx.shadowBlur=18;
+  ctx.beginPath();ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  // Specular
+  ctx.fillStyle='rgba(255,255,255,.5)';
+  ctx.beginPath();ctx.arc(ball.x-BALL_R*.3,ball.y-BALL_R*.3,BALL_R*.25,0,Math.PI*2);ctx.fill();
+
+  // Player paddle (bottom — cyan)
+  drawPaddle(player.x,player.y,'#00E5FF','🎮');
+  // CPU / P2 paddle (top — pink)
+  drawPaddle(cpu.x,cpu.y,'#FF6B9D',mode==='ai'?'🤖':'👫');
+
+  // Scores on canvas
+  ctx.font=`bold ${Math.round(CW*.08)}px "Fredoka One",cursive`;
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(199,125,255,.4)';ctx.fillText(cScore,CW/2,8);
+  ctx.textBaseline='bottom';
+  ctx.fillStyle='rgba(0,229,255,.4)';ctx.fillText(pScore,CW/2,CH-8);
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+
+  if(gamePaused){
+    ctx.fillStyle='rgba(10,5,30,.72)';ctx.fillRect(0,0,CW,CH);
+    ctx.font=`bold 60px "Fredoka One",cursive`;
+    ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('⏸',CW/2,CH/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
+}
+
+function drawPaddle(cx,y,color,emoji){
+  const g=ctx.createLinearGradient(cx-PAD_W/2,0,cx+PAD_W/2,0);
+  g.addColorStop(0,color+'99');g.addColorStop(.5,color);g.addColorStop(1,color+'99');
+  ctx.fillStyle=g;ctx.shadowColor=color;ctx.shadowBlur=14;
+  ctx.beginPath();
+  ctx.roundRect(cx-PAD_W/2,y,PAD_W,PAD_H,PAD_H/2);
+  ctx.fill();ctx.shadowBlur=0;
+  // Shine
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.beginPath();ctx.roundRect(cx-PAD_W/2+4,y+2,PAD_W-8,PAD_H*.4,PAD_H*.2);ctx.fill();
+}
+
+// ── AUDIO ────────────────────────────────────────────────────────
+let actx;
+function beep(f,d,t,v){
+  try{
+    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);o.type=t||'sine';o.frequency.value=f;
+    g.gain.setValueAtTime(v||.1,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);
+  }catch(e){}
+}
+function sfxBounce(){beep(320,.04,'square',.07)}
+function sfxPaddle(){beep(480,.06,'sine',.1)}
+function sfxScore(p){p?[440,550,660].forEach((f,i)=>setTimeout(()=>beep(f,.08,'square',.1),i*70)):[250,200,160].forEach((f,i)=>setTimeout(()=>beep(f,.08,'sawtooth',.1),i*60))}
+
+// ── INPUT ────────────────────────────────────────────────────────
+function trackTouch(e,targetPaddle){
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=CW/rect.width;
+  Array.from(e.touches).forEach(t=>{
+    const cx=(t.clientX-rect.left)*scaleX;
+    const cy=(t.clientY-rect.top)*(CH/rect.height);
+    if(mode==='2p'){
+      if(cy<CH/2) cpu.x=Math.max(PAD_W/2,Math.min(CW-PAD_W/2,cx));
+      else player.x=Math.max(PAD_W/2,Math.min(CW-PAD_W/2,cx));
+    } else {
+      if(cy>CH/2) player.x=Math.max(PAD_W/2,Math.min(CW-PAD_W/2,cx));
+    }
+  });
+  try{if(actx&&actx.state==='suspended')actx.resume()}catch(e2){}
+}
+
+canvas.addEventListener('touchmove',e=>trackTouch(e),{passive:false});
+canvas.addEventListener('touchstart',e=>trackTouch(e),{passive:false});
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const cx=(e.clientX-rect.left)*(CW/rect.width);
+  player.x=Math.max(PAD_W/2,Math.min(CW-PAD_W/2,cx));
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='p'||e.key==='Escape')togglePause();
+});
+
+function spawnPtcl(e,cx,cy){
+  const el=document.createElement('div');el.className='particle';el.textContent=e;
+  const r=canvas.getBoundingClientRect();
+  el.style.left=(r.left+cx)+'px';el.style.top=(r.top+cy)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),800);
+}
+
+draw();
+</script>
+</body>
+</html>

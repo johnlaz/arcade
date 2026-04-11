@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🃏 Memory Magic!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#1a0a2e;--panel:rgba(255,255,255,.07);--pb:rgba(255,255,255,.15);
+    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF;--orange:#FF9500}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  body{background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
+    background-image:radial-gradient(ellipse at 25% 25%,rgba(199,125,255,.15) 0%,transparent 50%),
+      radial-gradient(ellipse at 75% 75%,rgba(0,229,255,.1) 0%,transparent 50%)}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;
+    background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),
+      radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.4) 0%,transparent 100%),
+      radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.35) 0%,transparent 100%)}
+  header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px 6px;z-index:10}
+  .back{background:var(--panel);border:2px solid var(--pb);color:#C8B8FF;border-radius:50%;
+    width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .title{font-family:'Fredoka One',cursive;font-size:26px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hud{width:100%;max-width:480px;display:flex;gap:8px;padding:0 16px 8px;z-index:10}
+  .pill{flex:1;background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:6px 8px;text-align:center}
+  .pill .lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#C8B8FF;margin-bottom:2px}
+  .pill .val{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold)}
+  #tv{color:var(--cyan)}#mv{color:var(--pink)}
+  .wrap{width:100%;max-width:480px;padding:0 16px;display:flex;flex-direction:column;align-items:center;gap:12px;z-index:10}
+  .diff-row{display:flex;gap:8px;width:100%}
+  .diff-btn{flex:1;height:44px;border:2px solid var(--pb);border-radius:14px;
+    font-family:'Fredoka One',cursive;font-size:15px;cursor:pointer;
+    background:var(--panel);color:var(--text2);transition:all .15s}
+  .diff-btn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent;color:#fff}
+  .grid{display:grid;gap:8px;width:100%;max-width:420px}
+  .card{background:linear-gradient(135deg,#2d1b4e,#3d2060);border:2px solid var(--pb);
+    border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:clamp(22px,8vw,44px);
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+    perspective:600px;position:relative;transform-style:preserve-3d}
+  .card.flipped,.card.matched{transform:rotateY(180deg)}
+  .card.matched{border-color:var(--green);box-shadow:0 0 16px rgba(105,255,71,.4)}
+  .card-front,.card-back{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    border-radius:14px;backface-visibility:hidden}
+  .card-back{transform:rotateY(180deg)}
+  .card-front{font-size:clamp(18px,6vw,32px);color:#C8B8FF}
+  .start-btn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:22px;
+    padding:16px 48px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%;max-width:300px;
+    transition:transform .1s,box-shadow .1s}
+  .start-btn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  #overlay{position:fixed;inset:0;background:rgba(10,5,20,.9);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+  #overlay.hidden{display:none}
+  .ocard{background:linear-gradient(135deg,#2d1b4e,#1a0a2e);border:3px solid var(--purple);
+    border-radius:28px;padding:30px 34px;text-align:center;
+    box-shadow:0 0 60px rgba(199,125,255,.35);max-width:340px;width:90%}
+  .oem{font-size:60px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
+  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  .otitle{font-family:'Fredoka One',cursive;font-size:32px;
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+  .osub{font-size:14px;color:#C8B8FF;margin-bottom:14px;line-height:1.55}
+  .oscr{font-family:'Fredoka One',cursive;font-size:24px;color:var(--gold);margin-bottom:20px}
+  .opbtn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:22px;
+    padding:14px 40px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%}
+  .opbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .particle{position:fixed;pointer-events:none;font-size:24px;z-index:200;animation:fup .9s ease-out forwards}
+  @keyframes fup{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-100px) scale(.3)}}
+  .sp{height:20px}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://johnlaz.github.io" class="back">🏠</a>
+  <div class="title">🃏 Memory Magic!</div>
+  <div style="width:44px"></div>
+</header>
+<div class="hud">
+  <div class="pill"><div class="lbl">⭐ Score</div><div class="val" id="sc">0</div></div>
+  <div class="pill"><div class="lbl">🏆 Best</div><div class="val" id="hi">0</div></div>
+  <div class="pill"><div class="lbl">👆 Moves</div><div class="val" id="mv">0</div></div>
+  <div class="pill"><div class="lbl">⏱ Time</div><div class="val" id="tv">0</div></div>
+</div>
+<div class="wrap">
+  <div class="diff-row">
+    <button class="diff-btn active" id="d1" onclick="setDiff(1)">🌱 Easy<br><small>4×3</small></button>
+    <button class="diff-btn" id="d2" onclick="setDiff(2)">🔥 Medium<br><small>4×4</small></button>
+    <button class="diff-btn" id="d3" onclick="setDiff(3)">⚡ Hard<br><small>5×4</small></button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="start-btn" onclick="startGame()">🃏 Deal Cards!</button>
+  <div class="sp"></div>
+</div>
+<div id="overlay">
+  <div class="ocard">
+    <span class="oem" id="oem">🃏</span>
+    <div class="otitle" id="otitle">Memory Magic!</div>
+    <div class="osub" id="osub">Tap cards to flip them and find matching pairs! Remember where you saw each emoji!</div>
+    <div class="oscr" id="oscr"></div>
+    <button class="opbtn" id="obtn" onclick="startGame()">🃏 Deal Cards!</button>
+  </div>
+</div>
+<script>
+const ALL_EMOJIS=['🌟','🎉','🦄','🍭','🌈','🎈','💎','🦋','🐳','🦊','🍕','🎮',
+  '🏆','🚀','🌺','🎵','🦁','🍦','⚽','🎯','🐙','🦕','🍩','🎪'];
+
+let diff=1, cards=[], flipped=[], matched=0, moves=0, score=0, highScore=0;
+let gameRunning=false, canFlip=true;
+let timerInterval=null, elapsed=0;
+
+const CONFIGS={1:{cols:4,rows:3},2:{cols:4,rows:4},3:{cols:5,rows:4}};
+
+function setDiff(d){
+  diff=d;
+  [1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('active',i===d));
+}
+
+function startGame(){
+  document.getElementById('overlay').classList.add('hidden');
+  highScore=parseInt(localStorage.getItem('memHS')||'0');
+  const {cols,rows}=CONFIGS[diff];
+  const total=cols*rows;
+  const pairs=total/2;
+  const pool=ALL_EMOJIS.slice(0,pairs);
+  const deck=[...pool,...pool].sort(()=>Math.random()-.5);
+
+  moves=0;score=0;matched=0;elapsed=0;canFlip=true;flipped=[];
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{elapsed++;document.getElementById('tv').textContent=elapsed},1000);
+  gameRunning=true;
+  updateHUD();
+
+  const grid=document.getElementById('grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  grid.innerHTML='';
+  cards=deck.map((emoji,i)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`<div class="card-front">✨</div><div class="card-back">${emoji}</div>`;
+    card.addEventListener('click',()=>flipCard(i));
+    grid.appendChild(card);
+    return {el:card,emoji,flipped:false,matched:false};
+  });
+  try{if(actx&&actx.state==='suspended')actx.resume()}catch(e){}
+}
+
+function flipCard(i){
+  if(!gameRunning||!canFlip)return;
+  const c=cards[i];
+  if(c.matched||c.flipped)return;
+  c.flipped=true;c.el.classList.add('flipped');
+  flipped.push(i);sfxFlip();
+
+  if(flipped.length===2){
+    canFlip=false;moves++;updateHUD();
+    const [a,b]=flipped;
+    if(cards[a].emoji===cards[b].emoji){
+      // Match!
+      setTimeout(()=>{
+        cards[a].matched=cards[b].matched=true;
+        cards[a].el.classList.add('matched');cards[b].el.classList.add('matched');
+        matched++;score+=Math.max(10,100-elapsed*2+50);
+        sfxMatch();updateHUD();
+        spawnPtcl('⭐',cards[a].el);spawnPtcl('✨',cards[b].el);
+        flipped=[];canFlip=true;
+        if(matched===cards.length/2)setTimeout(gameOver,400);
+      },400);
+    } else {
+      setTimeout(()=>{
+        cards[a].flipped=cards[b].flipped=false;
+        cards[a].el.classList.remove('flipped');cards[b].el.classList.remove('flipped');
+        flipped=[];canFlip=true;sfxMiss();
+      },800);
+    }
+  }
+}
+
+function gameOver(){
+  gameRunning=false;clearInterval(timerInterval);
+  const bonus=Math.max(0,500-elapsed*5);
+  score+=bonus;
+  if(score>highScore){highScore=score;localStorage.setItem('memHS',highScore);}
+  sfxWin();updateHUD();
+  showOverlay('🎉','You Won!',`${moves} moves in ${elapsed}s — amazing memory!`,'⭐ '+score+' points!','🔄 Play Again!',startGame);
+}
+
+function updateHUD(){
+  document.getElementById('sc').textContent=score;
+  document.getElementById('hi').textContent=highScore;
+  document.getElementById('mv').textContent=moves;
+  document.getElementById('tv').textContent=elapsed;
+}
+
+function showOverlay(em,ti,su,sc,bt,cb){
+  document.getElementById('oem').textContent=em;
+  document.getElementById('otitle').textContent=ti;
+  document.getElementById('osub').textContent=su;
+  document.getElementById('oscr').textContent=sc;
+  const b=document.getElementById('obtn');b.textContent=bt;b.onclick=cb||startGame;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+let actx;
+function beep(f,d,t,v){
+  try{
+    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);o.type=t||'sine';o.frequency.value=f;
+    g.gain.setValueAtTime(v||.1,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);
+  }catch(e){}
+}
+function sfxFlip(){beep(440,.06,'sine',.08)}
+function sfxMatch(){beep(660,.08);setTimeout(()=>beep(880,.1),90)}
+function sfxMiss(){beep(220,.1,'sawtooth',.08)}
+function sfxWin(){[440,550,660,770,880].forEach((f,i)=>setTimeout(()=>beep(f,.1,'square',.1),i*80))}
+
+function spawnPtcl(e,el){
+  const r=el.getBoundingClientRect();
+  const p=document.createElement('div');p.className='particle';p.textContent=e;
+  p.style.left=(r.left+r.width/2)+'px';p.style.top=(r.top+r.height/2)+'px';
+  document.body.appendChild(p);setTimeout(()=>p.remove(),900);
+}
+</script>
+</body>
+</html>
