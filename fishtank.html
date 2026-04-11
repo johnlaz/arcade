@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🐠 Fish Tank!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(180deg,#001a3e 0%,#003366 40%,#006699 100%);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-coins{font-size:.9rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px - 80px);display:block}
+#shop{position:fixed;bottom:0;left:0;right:0;height:80px;background:rgba(0,0,0,.5);backdrop-filter:blur(12px);display:flex;align-items:center;gap:8px;padding:8px 12px;overflow-x:auto;border-top:1px solid rgba(255,255,255,.1)}
+.shop-btn{flex-shrink:0;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:14px;padding:6px 10px;cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:60px}
+.shop-btn:active{background:rgba(255,255,255,.2)}
+.shop-ico{font-size:1.3rem}
+.shop-name{font-size:.52rem;color:rgba(255,255,255,.7)}
+.shop-cost{font-size:.6rem;color:#FFD700}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,20,50,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:swim 2s ease-in-out infinite alternate}
+@keyframes swim{from{transform:translateX(-15px)}to{transform:translateX(15px)}}
+.ov-title{font-size:2rem;color:#00E5FF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.play-btn{background:linear-gradient(135deg,#00E5FF,#0066cc);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(0,229,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🐠 Fish Tank!</div>
+  <div class="hud-coins">🪙 <span id="coins">20</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="shop">
+  <div class="shop-btn" onclick="feed()"><div class="shop-ico">🦐</div><div class="shop-name">Feed</div><div class="shop-cost">Free</div></div>
+  <div class="shop-btn" onclick="buyFish('🐠',5)"><div class="shop-ico">🐠</div><div class="shop-name">Clownfish</div><div class="shop-cost">🪙5</div></div>
+  <div class="shop-btn" onclick="buyFish('🐡',8)"><div class="shop-ico">🐡</div><div class="shop-name">Pufferfish</div><div class="shop-cost">🪙8</div></div>
+  <div class="shop-btn" onclick="buyFish('🐟',4)"><div class="shop-ico">🐟</div><div class="shop-name">Blue Fish</div><div class="shop-cost">🪙4</div></div>
+  <div class="shop-btn" onclick="buyFish('🦈',15)"><div class="shop-ico">🦈</div><div class="shop-name">Shark</div><div class="shop-cost">🪙15</div></div>
+  <div class="shop-btn" onclick="buyFish('🐙',12)"><div class="shop-ico">🐙</div><div class="shop-name">Octopus</div><div class="shop-cost">🪙12</div></div>
+  <div class="shop-btn" onclick="buyFish('🦑',10)"><div class="shop-ico">🦑</div><div class="shop-name">Squid</div><div class="shop-cost">🪙10</div></div>
+  <div class="shop-btn" onclick="buyDecor('🪸',6)"><div class="shop-ico">🪸</div><div class="shop-name">Coral</div><div class="shop-cost">🪙6</div></div>
+  <div class="shop-btn" onclick="buyDecor('🌿',3)"><div class="shop-ico">🌿</div><div class="shop-name">Seaweed</div><div class="shop-cost">🪙3</div></div>
+  <div class="shop-btn" onclick="buyDecor('⭐',5)"><div class="shop-ico">⭐</div><div class="shop-name">Starfish</div><div class="shop-cost">🪙5</div></div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🐠</div>
+  <div class="ov-title">Fish Tank!</div>
+  <div class="ov-sub">Build your own aquarium!<br>Buy fish & decorations, feed your fish to earn coins!</div>
+  <button class="play-btn" onclick="startGame()">Open Tank! 🌊</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,fish=[],decor=[],bubbles=[],coins=20,feedCooldown=0,raf,frame=0;
+let state=JSON.parse(localStorage.getItem('fishtank')||'null');
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+window.addEventListener('resize',resize);
+
+function Fish(emoji){
+  this.emoji=emoji;this.x=W*.1+Math.random()*W*.8;this.y=H*.2+Math.random()*H*.6;
+  this.vx=(Math.random()-.5)*1.5;this.vy=(Math.random()-.5)*.8;
+  this.hunger=100;this.size=H*.045;this.angle=0;this.wobble=Math.random()*Math.PI*2;
+}
+Fish.prototype.update=function(){
+  this.wobble+=.04;this.x+=this.vx;this.y+=this.vy+(Math.sin(this.wobble)*.3);
+  if(this.x<this.size){this.x=this.size;this.vx=Math.abs(this.vx);}
+  if(this.x>W-this.size){this.x=W-this.size;this.vx=-Math.abs(this.vx);}
+  if(this.y<this.size){this.y=this.size;this.vy=Math.abs(this.vy);}
+  if(this.y>H-this.size*1.5){this.y=H-this.size*1.5;this.vy=-Math.abs(this.vy);}
+  if(Math.random()<.005){this.vx=(Math.random()-.5)*1.5;this.vy=(Math.random()-.5)*.8;}
+  this.hunger=Math.max(0,this.hunger-.002);
+};
+Fish.prototype.draw=function(){
+  ctx.save();if(this.vx<0)ctx.scale(-1,1);
+  ctx.font=`${this.size*2}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  const alpha=0.5+this.hunger/200;ctx.globalAlpha=alpha;
+  ctx.fillText(this.emoji,this.vx<0?-this.x:this.x,this.y);
+  ctx.restore();
+  // Hunger bar
+  if(this.hunger<60){
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(this.x-18,this.y-this.size-8,36,5);
+    ctx.fillStyle=this.hunger<30?'#FF6B6B':'#FFD700';
+    ctx.fillRect(this.x-18,this.y-this.size-8,36*this.hunger/100,5);
+  }
+};
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  resize();
+  if(state){coins=state.coins;fish=state.fish.map(f=>Object.assign(new Fish(f.emoji),f));decor=state.decor||[];}
+  else{fish=[new Fish('🐠'),new Fish('🐟')];}
+  document.getElementById('coins').textContent=coins;
+  loop();
+  // Auto-earn coins every 30s for healthy fish
+  setInterval(earnCoins,30000);
+}
+
+function earnCoins(){
+  const healthy=fish.filter(f=>f.hunger>50).length;
+  if(healthy>0){coins+=healthy;document.getElementById('coins').textContent=coins;showMsg(`+${healthy} 🪙 from happy fish!`);}
+  save();
+}
+
+function loop(){
+  raf=requestAnimationFrame(loop);frame++;
+  ctx.clearRect(0,0,W,H);
+  // Water gradient
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(0,100,180,.15)');g.addColorStop(1,'rgba(0,40,80,.3)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Caustic shimmer
+  if(frame%120===0)bubbles.push({x:Math.random()*W,y:H,r:3+Math.random()*5,vy:-(1+Math.random()),opacity:1});
+  for(let i=bubbles.length-1;i>=0;i--){const b=bubbles[i];b.y+=b.vy;b.opacity-=.008;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.strokeStyle=`rgba(255,255,255,${b.opacity})`;ctx.lineWidth=1.2;ctx.stroke();if(b.opacity<=0||b.y<-10)bubbles.splice(i,1);}
+  // Decor
+  decor.forEach(d=>{ctx.font=`${H*.06}px serif`;ctx.textAlign='center';ctx.fillText(d.emoji,d.x,d.y);});
+  // Fish
+  fish.forEach(f=>{f.update();f.draw();});
+  // Feed cooldown
+  if(feedCooldown>0)feedCooldown--;
+}
+
+function feed(){
+  if(feedCooldown>0){showMsg('Wait a moment! ⏳');return;}
+  fish.forEach(f=>{f.hunger=Math.min(100,f.hunger+30);});
+  feedCooldown=180;coins+=fish.length;document.getElementById('coins').textContent=coins;
+  showMsg(`Fed ${fish.length} fish! +${fish.length} 🪙`);
+  if(navigator.vibrate)navigator.vibrate(10);save();
+}
+
+function buyFish(emoji,cost){
+  if(coins<cost){showMsg('Not enough coins! 🪙');return;}
+  if(fish.length>=12){showMsg('Tank is full! 🐠');return;}
+  coins-=cost;document.getElementById('coins').textContent=coins;
+  fish.push(new Fish(emoji));if(navigator.vibrate)navigator.vibrate(10);
+  showMsg(`${emoji} joined your tank!`);save();
+}
+
+function buyDecor(emoji,cost){
+  if(coins<cost){showMsg('Not enough coins! 🪙');return;}
+  coins-=cost;document.getElementById('coins').textContent=coins;
+  decor.push({emoji,x:W*(.1+Math.random()*.8),y:H*(.6+Math.random()*.3)});
+  showMsg(`${emoji} added!`);save();
+}
+
+function showMsg(txt){
+  const el=document.createElement('div');
+  el.style.cssText=`position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-family:'Fredoka One',cursive;font-size:.9rem;padding:6px 16px;border-radius:12px;z-index:50;pointer-events:none`;
+  el.textContent=txt;document.body.appendChild(el);setTimeout(()=>el.remove(),2000);
+}
+
+function save(){
+  localStorage.setItem('fishtank',JSON.stringify({coins,fish:fish.map(f=>({emoji:f.emoji,x:f.x,y:f.y,hunger:f.hunger})),decor}));
+}
+resize();
+</script></body></html>

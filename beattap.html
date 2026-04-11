@@ -1,0 +1,157 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🎵 Beat Tap!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#0a0a1e,#1a0a2e);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-score{font-size:.9rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0 12px}
+.combo-bar{font-size:1.2rem;color:#C77DFF;min-height:1.8rem;text-align:center}
+#lanes{flex:1;display:flex;gap:0;width:100%;max-width:340px;position:relative;overflow:hidden}
+.lane{flex:1;border-right:1px solid rgba(255,255,255,.08);position:relative;display:flex;flex-direction:column;align-items:center}
+.lane:last-child{border-right:none}
+.lane-bg{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(255,255,255,.03))}
+.hit-zone{position:absolute;bottom:0;left:4px;right:4px;height:60px;border-radius:14px 14px 0 0;opacity:.3}
+.tap-btn{position:absolute;bottom:0;left:4px;right:4px;height:60px;border-radius:14px 14px 0 0;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:1.6rem;border:2.5px solid rgba(255,255,255,.2);z-index:5;transition:background .1s}
+.tap-btn:active{filter:brightness(1.5)}
+.note{position:absolute;width:calc(100% - 10px);left:5px;border-radius:10px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:none}
+.hit-fx{position:absolute;bottom:30px;font-size:1.4rem;animation:hitFly .5s ease-out forwards;pointer-events:none}
+@keyframes hitFly{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-50px) scale(1.5);opacity:0}}
+.hud-life{font-size:.9rem}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,0,20,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+.ov-title{font-size:2rem;color:#C77DFF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:300px}
+.ov-score{font-size:1.2rem;color:#FFD700}
+.play-btn{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🎵 Beat Tap!</div>
+  <div class="hud-score">⭐<span id="score">0</span> <span class="hud-life">❤️<span id="lives">5</span></span></div>
+</div>
+<div id="stage">
+  <div class="combo-bar" id="comboBar"></div>
+  <div id="lanes"></div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🎵</div>
+  <div class="ov-title">Beat Tap!</div>
+  <div class="ov-sub">Tap the lane when the note reaches the glowing zone at the bottom!<br>Miss 5 notes and it's over!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Let's Tap! 🎶</button>
+</div>
+<script>
+const LANE_COLORS=['#FF6B9D','#C77DFF','#00E5FF','#69FF47'];
+const LANE_EMOJIS=['🎵','🎶','🎸','🥁'];
+const NOTE_EMOJIS=['⭐','💜','💙','💚'];
+let lanes=[],notes=[],score=0,combo=0,lives=5,raf,running=false,frame=0,speed=2.5;
+let laneH=0,hitY=0;
+
+function buildLanes(){
+  const el=document.getElementById('lanes');el.innerHTML='';
+  const stageH=el.offsetHeight;laneH=stageH;hitY=stageH-60;
+  lanes=[];
+  for(let i=0;i<4;i++){
+    const l=document.createElement('div');l.className='lane';
+    const bg=document.createElement('div');bg.className='lane-bg';l.appendChild(bg);
+    const hz=document.createElement('div');hz.className='hit-zone';hz.style.background=LANE_COLORS[i]+'44';l.appendChild(hz);
+    const btn=document.createElement('div');btn.className='tap-btn';
+    btn.style.background=LANE_COLORS[i]+'33';btn.textContent=LANE_EMOJIS[i];
+    btn.addEventListener('pointerdown',e=>{e.preventDefault();tapLane(i);});
+    l.appendChild(btn);
+    el.appendChild(l);lanes.push({el:l});
+  }
+}
+
+function spawnNote(lane){
+  const el=document.createElement('div');el.className='note';
+  el.style.background=`linear-gradient(135deg,${LANE_COLORS[lane]},${LANE_COLORS[(lane+1)%4]})`;
+  el.style.top='-44px';el.textContent=NOTE_EMOJIS[lane];
+  lanes[lane].el.appendChild(el);
+  notes.push({el,lane,y:-44,speed});
+}
+
+function tapLane(i){
+  if(!running)return;
+  // Find closest note in this lane in hit window
+  const window=55;
+  let best=null,bestDist=Infinity;
+  notes.forEach(n=>{
+    if(n.lane===i){
+      const dist=Math.abs(n.y-hitY);
+      if(dist<window&&dist<bestDist){best=n;bestDist=dist;}
+    }
+  });
+  if(best){
+    // Hit!
+    const quality=bestDist<15?'PERFECT! 🌟':bestDist<30?'GREAT! ✨':'GOOD! 👍';
+    const pts=bestDist<15?3:bestDist<30?2:1;
+    score+=pts*(1+Math.floor(combo/5));combo++;
+    document.getElementById('score').textContent=score;
+    document.getElementById('comboBar').textContent=combo>=5?`${combo}x COMBO! 🔥`:'';
+    // Remove note
+    best.el.remove();notes.splice(notes.indexOf(best),1);
+    // Hit fx
+    const fx=document.createElement('div');fx.className='hit-fx';fx.textContent=quality;
+    fx.style.left='50%';lanes[i].el.appendChild(fx);setTimeout(()=>fx.remove(),500);
+    if(navigator.vibrate)navigator.vibrate(12);
+  } else {
+    // Flash lane
+    lanes[i].el.querySelector('.tap-btn').style.background=LANE_COLORS[i]+'66';
+    setTimeout(()=>lanes[i].el.querySelector('.tap-btn').style.background=LANE_COLORS[i]+'33',150);
+  }
+  lanes[i].el.querySelector('.tap-btn').style.filter='brightness(1.6)';
+  setTimeout(()=>lanes[i].el.querySelector('.tap-btn').style.filter='',100);
+}
+
+// Simple beat pattern
+const PATTERN=[[0],[2],[1,3],[0],[2],[1],[0,3],[2],[1],[0],[3],[1,2]];
+let patternIdx=0,nextBeat=60;
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  buildLanes();notes=[];score=0;combo=0;lives=5;frame=0;speed=2.5;patternIdx=0;nextBeat=60;
+  document.getElementById('score').textContent=0;document.getElementById('lives').textContent=5;
+  document.getElementById('comboBar').textContent='';
+  running=true;loop();
+}
+
+function loop(){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);frame++;
+  speed=2.5+score*.008;
+  // Spawn notes from pattern
+  if(frame>=nextBeat){
+    const beat=PATTERN[patternIdx%PATTERN.length];
+    beat.forEach(l=>spawnNote(l));
+    patternIdx++;
+    nextBeat=frame+Math.max(28,48-Math.floor(score/15));
+  }
+  // Move notes
+  for(let i=notes.length-1;i>=0;i--){
+    const n=notes[i];n.y+=n.speed;n.el.style.top=n.y+'px';
+    // Missed
+    if(n.y>laneH){
+      n.el.remove();notes.splice(i,1);
+      lives--;combo=0;document.getElementById('lives').textContent=lives;
+      document.getElementById('comboBar').textContent='';
+      if(navigator.vibrate)navigator.vibrate([30,20,30]);
+      if(lives<=0){endGame();return;}
+    }
+  }
+}
+
+function endGame(){
+  running=false;cancelAnimationFrame(raf);
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=score>=100?'Rhythm Star! 🌟':score>=40?'Nice Beat! 🎵':'Keep Practicing! 💪';
+  document.getElementById('finalScore').textContent=`Score: ${score}`;
+}
+</script></body></html>

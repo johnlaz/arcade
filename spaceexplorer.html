@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🚀 Space Explorer!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse at center,#0a0a2e 0%,#000010 100%);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-score{font-size:.9rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+/* Map view */
+#mapView{width:100%;flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.planet{position:absolute;cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;gap:4px;animation:orbit var(--period,10s) linear infinite}
+@keyframes orbit{from{transform:rotate(var(--start,0deg)) translateX(var(--r,80px)) rotate(calc(-1*var(--start,0deg)))}to{transform:rotate(calc(var(--start,0deg)+360deg)) translateX(var(--r,80px)) rotate(calc(-360deg - var(--start,0deg)))}}
+.planet-ico{font-size:clamp(2rem,8vw,3rem);filter:drop-shadow(0 0 10px currentColor)}
+.planet-name{font-size:.6rem;color:rgba(255,255,255,.7);white-space:nowrap}
+/* Planet detail view */
+#detailView{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:60px 16px 16px;background:rgba(0,0,0,.92);backdrop-filter:blur(16px)}
+.detail-planet{font-size:clamp(4rem,18vw,7rem);text-align:center;filter:drop-shadow(0 0 20px #C77DFF);animation:glow 2s ease-in-out infinite alternate}
+@keyframes glow{from{filter:drop-shadow(0 0 10px #C77DFF)}to{filter:drop-shadow(0 0 30px #FF6B9D)}}
+.detail-name{font-size:1.5rem;color:#FFD700;text-align:center}
+.detail-fact{font-size:.9rem;color:rgba(255,255,255,.8);text-align:center;line-height:1.6;max-width:300px;font-family:'Nunito',sans-serif;font-weight:700;background:rgba(255,255,255,.06);border-radius:14px;padding:12px 16px;border:1px solid rgba(255,255,255,.1)}
+.mini-game-area{width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.mini-title{font-size:.9rem;color:#C77DFF}
+.mini-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.mini-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:10px 16px;color:#fff;cursor:pointer;touch-action:manipulation;font-family:'Fredoka One',cursive;font-size:.85rem}
+.mini-btn:active{background:rgba(255,255,255,.25)}
+.mini-result{font-size:.9rem;color:#69FF47;text-align:center;min-height:1.3rem}
+.back-planet{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:18px;padding:10px 24px;color:#fff;cursor:pointer;touch-action:manipulation;font-family:'Fredoka One',cursive;font-size:.9rem;margin-top:8px}
+#overlay{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,10,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov-title{font-size:2rem;color:#00E5FF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.play-btn{background:linear-gradient(135deg,#00E5FF,#0066cc);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(0,229,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🚀 Space Explorer!</div>
+  <div class="hud-score">🌍 Visited: <span id="visited">0</span>/8</div>
+</div>
+<div id="stage">
+  <div id="mapView"></div>
+</div>
+<div id="detailView">
+  <div class="detail-planet" id="detailPlanet">🌍</div>
+  <div class="detail-name" id="detailName">Earth</div>
+  <div class="detail-fact" id="detailFact">Fact loading...</div>
+  <div class="mini-game-area">
+    <div class="mini-title" id="miniTitle"></div>
+    <div class="mini-btns" id="miniBtns"></div>
+    <div class="mini-result" id="miniResult"></div>
+  </div>
+  <button class="back-planet" onclick="closeDetail()">🚀 Fly Back</button>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🚀</div>
+  <div class="ov-title">Space Explorer!</div>
+  <div class="ov-sub">Tap planets to visit them!<br>Learn cool facts and play mini-games!<br>Explore all 8 planets!</div>
+  <button class="play-btn" onclick="startGame()">Blast Off! 🌟</button>
+</div>
+<script>
+const PLANETS=[
+  {emoji:'☀️',name:'The Sun',color:'#FFD700',fact:'The Sun is SO big — 1 million Earths could fit inside it! It\'s like a giant ball of fire 93 million miles away! 🌟',quiz:{q:'What color is the Sun?',a:'Yellow',wrong:['Blue','Green','Purple']}},
+  {emoji:'🌍',name:'Earth',color:'#00E5FF',fact:'Earth is the only planet we know that has life on it! It has oceans, mountains, and even YOU on it! 🌊',quiz:{q:'What is Earth mostly covered in?',a:'Water',wrong:['Fire','Ice','Sand']}},
+  {emoji:'🌙',name:'The Moon',color:'#C8C8C8',fact:'The Moon is Earth\'s best friend! It goes around Earth and makes the ocean tides. Astronauts walked on it! 👨‍🚀',quiz:{q:'Does the Moon have air?',a:'No',wrong:['Yes','Maybe','Lots']}},
+  {emoji:'🔴',name:'Mars',color:'#FF6347',fact:'Mars is called the Red Planet because its soil is rusty red! Scientists are planning to send people there someday! 🚀',quiz:{q:'What color is Mars?',a:'Red',wrong:['Blue','Yellow','Green']}},
+  {emoji:'🪐',name:'Saturn',color:'#FFD700',fact:'Saturn has beautiful rings made of ice and rock! It\'s so light it could float in a giant bathtub! 💍',quiz:{q:'What does Saturn have around it?',a:'Rings',wrong:['Moons','Clouds','Stars']}},
+  {emoji:'🌀',name:'Jupiter',color:'#FF9500',fact:'Jupiter is the BIGGEST planet — so big that all other planets could fit inside it! It has a giant storm bigger than Earth! 🌪️',quiz:{q:'Is Jupiter bigger than Earth?',a:'Yes',wrong:['No','Same size','Smaller']}},
+  {emoji:'❄️',name:'Uranus',color:'#00E5FF',fact:'Uranus is an ice giant — super cold! It spins on its side like a rolling ball. It has 27 moons! 🌨️',quiz:{q:'Is Uranus hot or cold?',a:'Cold',wrong:['Hot','Warm','On fire']}},
+  {emoji:'🔵',name:'Neptune',color:'#0066FF',fact:'Neptune has the strongest winds in the solar system — faster than any storm on Earth! It\'s the farthest planet! 💨',quiz:{q:'Where is Neptune in the solar system?',a:'Farthest',wrong:['Closest','Middle','Second']}},
+];
+let visited=new Set();
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  buildMap();
+  visited=new Set(JSON.parse(localStorage.getItem('space_visited')||'[]'));
+  document.getElementById('visited').textContent=visited.size;
+}
+
+function buildMap(){
+  const map=document.getElementById('mapView');map.innerHTML='';
+  // Sun in center
+  const sun=document.createElement('div');sun.style.cssText='position:absolute;font-size:clamp(3rem,12vw,5rem);filter:drop-shadow(0 0 20px #FFD700);animation:glow2 2s ease-in-out infinite alternate;cursor:default';
+  sun.textContent='☀️';
+  sun.addEventListener('pointerdown',()=>openPlanet(PLANETS[0]));
+  map.appendChild(sun);
+  // Planets in orbits
+  const orbitPlanets=PLANETS.slice(1);
+  orbitPlanets.forEach((p,i)=>{
+    const radius=Math.min(map.offsetWidth,map.offsetHeight)*(0.2+i*.08);
+    const el=document.createElement('div');el.className='planet';
+    el.style.setProperty('--r',radius+'px');
+    el.style.setProperty('--period',(8+i*3)+'s');
+    el.style.setProperty('--start',(i*45)+'deg');
+    el.innerHTML=`<div class="planet-ico">${p.emoji}</div><div class="planet-name">${p.name}</div>`;
+    el.addEventListener('pointerdown',e=>{e.preventDefault();openPlanet(p);});
+    map.appendChild(el);
+    // Orbit ring
+    const ring=document.createElement('div');
+    ring.style.cssText=`position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.08);width:${radius*2}px;height:${radius*2}px;pointer-events:none`;
+    map.insertBefore(ring,map.firstChild);
+  });
+}
+
+function openPlanet(p){
+  document.getElementById('detailView').style.display='flex';
+  document.getElementById('detailPlanet').textContent=p.emoji;
+  document.getElementById('detailName').textContent=p.name;
+  document.getElementById('detailFact').textContent=p.fact;
+  document.getElementById('miniResult').textContent='';
+  // Quiz
+  const q=p.quiz;
+  document.getElementById('miniTitle').textContent='❓ '+q.q;
+  const answers=[q.a,...q.wrong].sort(()=>Math.random()-.5);
+  const btns=document.getElementById('miniBtns');btns.innerHTML='';
+  answers.forEach(ans=>{
+    const btn=document.createElement('button');btn.className='mini-btn';btn.textContent=ans;
+    btn.addEventListener('pointerdown',()=>{
+      if(ans===q.a){
+        document.getElementById('miniResult').textContent='🌟 Correct! You\'re a space genius!';
+        btn.style.background='rgba(105,255,71,.3)';
+        visited.add(p.name);
+        localStorage.setItem('space_visited',JSON.stringify([...visited]));
+        document.getElementById('visited').textContent=visited.size;
+        if(navigator.vibrate)navigator.vibrate([20,10,30]);
+      }else{
+        document.getElementById('miniResult').textContent='Not quite! Try again! 🚀';
+        btn.style.background='rgba(255,107,107,.2)';
+      }
+    });
+    btns.appendChild(btn);
+  });
+}
+
+function closeDetail(){document.getElementById('detailView').style.display='none';}
+</script></body></html>

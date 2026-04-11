@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🌈 Color Sort!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#1a0a2e,#0a1a3e);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-info{font-size:.85rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:10px}
+.tubes-row{display:flex;gap:10px;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.tube{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;padding:5px;
+  background:rgba(255,255,255,.08);border:2.5px solid rgba(255,255,255,.2);
+  border-radius:30px 30px 50% 50%;cursor:pointer;touch-action:manipulation;
+  transition:border-color .2s,transform .15s;position:relative}
+.tube.selected{border-color:#FFD700;transform:translateY(-6px);box-shadow:0 0 18px rgba(255,215,0,.4)}
+.tube.complete{border-color:#69FF47;box-shadow:0 0 18px rgba(105,255,71,.3)}
+.ball{border-radius:50%;border:2px solid rgba(255,255,255,.3);box-shadow:0 2px 6px rgba(0,0,0,.3);flex-shrink:0;transition:all .25s}
+.info-bar{display:flex;gap:12px;align-items:center}
+.level-badge{background:linear-gradient(135deg,#C77DFF,#FF6B9D);padding:4px 14px;border-radius:20px;font-size:.85rem;color:#fff}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,5,30,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov-title{font-size:2rem;color:#C77DFF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.play-btn{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.4)}
+.play-btn:active{transform:scale(.94)}
+.msg{font-size:1rem;color:#69FF47;min-height:1.4rem;text-align:center}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🌈 Color Sort!</div>
+  <div class="hud-info">Level <span id="levelNum">1</span></div>
+</div>
+<div id="stage">
+  <div class="info-bar"><div class="level-badge" id="levelBadge">Level 1</div></div>
+  <div class="tubes-row" id="tubesRow"></div>
+  <div class="msg" id="msg">Tap a tube to pick it up, then tap another to pour!</div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🌈</div>
+  <div class="ov-title">Color Sort!</div>
+  <div class="ov-sub">Sort the colored balls so each tube<br>has only ONE color!</div>
+  <button class="play-btn" onclick="startLevel(1)">Let's Sort! 🎨</button>
+</div>
+<script>
+const COLORS=['#FF6B9D','#00E5FF','#69FF47','#FFD700','#C77DFF','#FF9500'];
+const TUBE_CAP=4;
+let tubes=[],selected=null,level=1;
+
+function startLevel(lv){
+  document.getElementById('overlay').style.display='none';
+  level=lv;document.getElementById('levelNum').textContent=lv;
+  document.getElementById('levelBadge').textContent='Level '+lv;
+  selected=null;
+  const numColors=Math.min(2+lv,COLORS.length);
+  const numTubes=numColors+2;
+  // Build shuffled tubes
+  let pool=[];
+  for(let c=0;c<numColors;c++)for(let b=0;b<TUBE_CAP;b++)pool.push(c);
+  pool.sort(()=>Math.random()-.5);
+  tubes=[];
+  for(let t=0;t<numTubes;t++){
+    tubes.push(t<numColors*TUBE_CAP/TUBE_CAP?pool.splice(0,TUBE_CAP).filter((_,i)=>i<TUBE_CAP):[]);
+    if(t>=numColors)tubes[t]=[];
+  }
+  // Ensure solvable - just shuffle filled tubes
+  render();
+}
+
+function render(){
+  const row=document.getElementById('tubesRow');
+  const H=window.innerHeight-100;
+  const tubeH=Math.min(H*.45,160);
+  const ballSz=Math.min(tubeH/TUBE_CAP*.7,38);
+  const tubeW=ballSz+14;
+  row.innerHTML='';
+  const isComplete=tubes.every(t=>t.length===0||( t.length===TUBE_CAP&&t.every(c=>c===t[0])));
+  tubes.forEach((t,i)=>{
+    const el=document.createElement('div');el.className='tube';
+    if(i===selected)el.classList.add('selected');
+    if(t.length===TUBE_CAP&&t.every(c=>c===t[0]))el.classList.add('complete');
+    el.style.width=tubeW+'px';el.style.minHeight=tubeH+'px';
+    t.forEach(c=>{
+      const b=document.createElement('div');b.className='ball';
+      b.style.cssText=`width:${ballSz}px;height:${ballSz}px;background:${COLORS[c]};`;
+      el.appendChild(b);
+    });
+    el.addEventListener('pointerdown',e=>{e.preventDefault();tapTube(i);});
+    row.appendChild(el);
+  });
+  if(isComplete){setTimeout(()=>{
+    document.getElementById('msg').textContent='🎉 Level '+level+' complete!';
+    setTimeout(()=>startLevel(level+1),1500);
+  },300);}
+}
+
+function tapTube(i){
+  if(selected===null){
+    if(tubes[i].length===0)return;
+    selected=i;document.getElementById('msg').textContent='Now tap where to pour!';
+  } else if(selected===i){
+    selected=null;document.getElementById('msg').textContent='Tap a tube to pick it up!';
+  } else {
+    // Pour: move top ball if destination isn't full and top colors match (or dest empty)
+    const src=tubes[selected],dst=tubes[i];
+    if(dst.length>=TUBE_CAP){document.getElementById('msg').textContent="That tube is full!");selected=null;render();return;}
+    const topSrc=src[src.length-1];
+    const topDst=dst.length>0?dst[dst.length-1]:null;
+    if(topDst!==null&&topDst!==topSrc){document.getElementById('msg').textContent="Colors don't match! 🎨";selected=null;render();return;}
+    // Pour all matching top balls
+    let poured=0;
+    while(src.length>0&&dst.length<TUBE_CAP&&src[src.length-1]===topSrc){dst.push(src.pop());poured++;}
+    document.getElementById('msg').textContent=poured>0?'Nice pour! ✨':'Try another tube!';
+    if(navigator.vibrate)navigator.vibrate(10);
+    selected=null;
+  }
+  render();
+}
+</script></body></html>

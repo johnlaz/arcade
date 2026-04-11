@@ -1,0 +1,117 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🦄 Unicorn Run!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden;height:100dvh;width:100vw;user-select:none}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(180,100,255,.25);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff}
+.hud-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block;cursor:pointer}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(60,0,100,.88);backdrop-filter:blur(14px)}
+.ov-ico{font-size:5rem;animation:prance 1.2s ease-in-out infinite alternate}
+@keyframes prance{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-12px) rotate(5deg)}}
+.ov-title{font-family:'Fredoka One',cursive;font-size:2rem;color:#FFD700;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.75);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.ov-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FF6B9D}
+.play-btn{background:linear-gradient(135deg,#FF6B9D,#C77DFF);border:none;border-radius:22px;padding:13px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.5)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🦄 Unicorn Run!</div>
+  <div class="hud-score">⭐ <span id="score">0</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="overlay">
+  <div class="ov-ico">🦄</div>
+  <div class="ov-title">Unicorn Run!</div>
+  <div class="ov-sub">Tap to jump over dark clouds!<br>Collect stars for points! ⭐</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Gallop! 🌈</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,GY,uni,obstacles=[],stars=[],rainbows=[],score=0,speed=4,raf,running=false,frame=0,hiScore=+localStorage.getItem('uni_hi')||0;
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;GY=H*.78;}
+window.addEventListener('resize',resize);
+
+const U={x:0,y:0,vy:0,w:0,h:0,onGround:true,jumpCount:0};
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';resize();
+  U.w=H*.1;U.h=H*.1;U.x=W*.12;U.y=GY-U.h;U.vy=0;U.onGround=true;U.jumpCount=0;
+  obstacles=[];stars=[];rainbows=[];score=0;speed=4;frame=0;
+  document.getElementById('score').textContent=0;
+  running=true;loop();
+}
+
+function jump(){
+  if(!running){startGame();return;}
+  if(U.onGround||U.jumpCount<2){U.vy=H*-.021;U.onGround=false;U.jumpCount++;if(navigator.vibrate)navigator.vibrate(8);}
+}
+
+function loop(){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  ctx.clearRect(0,0,W,H);frame++;
+  speed=4+score*.025;
+
+  // Sky gradient - shifts colors over time
+  const hue=(frame*.2)%360;
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,`hsl(${hue},80%,70%)`);g.addColorStop(1,`hsl(${(hue+60)%360},70%,85%)`);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  // Rainbow ground trail
+  const rg=ctx.createLinearGradient(0,GY,0,H);
+  rg.addColorStop(0,'#C77DFF');rg.addColorStop(1,'#FF6B9D');
+  ctx.fillStyle=rg;ctx.fillRect(0,GY,W,H-GY);
+  // Rainbow stripe
+  const stripes=['#FF0000','#FF7F00','#FFFF00','#00FF00','#0000FF','#8B00FF'];
+  stripes.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(0,GY+i*4,W,4);});
+
+  // Stars bg deco
+  if(frame%60===0)stars.push({x:W+30,y:H*(.05+Math.random()*.6),speed:speed*.4,size:H*.03});
+  for(let i=stars.length-1;i>=0;i--){
+    const s=stars[i];s.x-=s.speed;
+    ctx.font=`${s.size*2.2}px serif`;ctx.textAlign='center';ctx.fillText('⭐',s.x,s.y);
+    const dx=s.x-U.x,dy=s.y-U.y;
+    if(dx*dx+dy*dy<(s.size+U.w*.4)*(s.size+U.w*.4)*4){stars.splice(i,1);score++;document.getElementById('score').textContent=score;continue;}
+    if(s.x<-40)stars.splice(i,1);
+  }
+
+  // Unicorn physics
+  U.vy+=H*.0013;U.y+=U.vy;
+  if(U.y>=GY-U.h){U.y=GY-U.h;U.vy=0;U.onGround=true;U.jumpCount=0;}
+  // Sparkle trail
+  if(frame%3===0){const s=document.createElement('div');}
+  ctx.font=`${U.h*1.3}px serif`;ctx.textAlign='center';ctx.fillText('🦄',U.x+U.w/2,U.y+U.h);
+
+  // Clouds (obstacles)
+  if(frame%Math.max(38,85-score)===0)obstacles.push({x:W+60,y:GY-H*(.12+Math.random()*.18),w:H*.07,h:H*.06,speed:speed});
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o=obstacles[i];o.x-=o.speed;
+    ctx.font=`${o.h*2.2}px serif`;ctx.textAlign='center';ctx.fillText('🌩️',o.x+o.w/2,o.y+o.h);
+    if(o.x<U.x+U.w*.6 && o.x+o.w*.6>U.x && o.y<U.y+U.h*.8 && o.y+o.h>.8>U.y){endGame();return;}
+    if(o.x<-80)obstacles.splice(i,1);
+  }
+  if(frame%6===0){score++;document.getElementById('score').textContent=score;}
+}
+
+function endGame(){
+  running=false;cancelAnimationFrame(raf);
+  if(score>hiScore){hiScore=score;localStorage.setItem('uni_hi',score);}
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=score>=150?'Rainbow Queen! 👑':score>=60?'Magic Runner! ✨':'Try Again! 🦄';
+  document.getElementById('finalScore').textContent=`Score: ${score} | Best: ${hiScore}`;
+}
+
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();jump();});
+document.addEventListener('keydown',e=>{if(e.code==='Space')jump();});
+resize();
+</script></body></html>

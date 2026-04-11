@@ -1,0 +1,124 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🏰 Castle Builder!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(180deg,#1a0050 0%,#2d0080 50%,#1a0030 100%);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-info{font-size:.9rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block;cursor:pointer}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,0,30,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:bob 1.5s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.ov-title{font-size:2rem;color:#FFD700;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.ov-score{font-size:1.2rem;color:#C77DFF}
+.play-btn{background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(255,215,0,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🏰 Castle Builder!</div>
+  <div class="hud-info">Floor <span id="floor">0</span> | Best <span id="best">0</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="overlay">
+  <div class="ov-ico">🏰</div>
+  <div class="ov-title">Castle Builder!</div>
+  <div class="ov-sub">Tap to drop the block!<br>Stack them as high as you can!<br>Missing cuts the block smaller!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Build! 🧱</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,blocks=[],moving={x:0,w:0,dir:1,speed:3},floor=0,best=+localStorage.getItem('castle_best')||0,raf,running=false,gameOver=false;
+const BLOCK_H=40;
+const EMOJIS=['🧱','🪨','💎','🌟','👑','🏰'];
+const COLORS=['#C2A060','#8B7355','#4FC3F7','#FFD700','#C77DFF','#FF6B9D'];
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+window.addEventListener('resize',resize);
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';resize();
+  blocks=[];floor=0;gameOver=false;
+  // Base block
+  const baseW=Math.min(W*.5,200);
+  blocks.push({x:(W-baseW)/2,y:H-BLOCK_H,w:baseW,color:COLORS[0],emoji:EMOJIS[0]});
+  newMoving();running=true;document.getElementById('floor').textContent=0;loop();
+}
+
+function newMoving(){
+  const lastW=blocks[blocks.length-1].w;
+  moving.w=lastW;moving.dir=Math.random()>.5?1:-1;moving.x=moving.dir>0?-lastW:W;
+  moving.speed=Math.min(3+floor*.15,8);
+  moving.color=COLORS[floor%COLORS.length];moving.emoji=EMOJIS[floor%EMOJIS.length];
+}
+
+function drop(){
+  if(!running||gameOver)return;
+  const last=blocks[blocks.length-1];
+  const overlap={x:Math.max(moving.x,last.x),r:Math.min(moving.x+moving.w,last.x+last.w)};
+  const ow=overlap.r-overlap.x;
+  if(ow<=0){endGame();return;}
+  // Place block
+  const newY=last.y-BLOCK_H;
+  blocks.push({x:overlap.x,y:newY,w:ow,color:moving.color,emoji:moving.emoji});
+  floor++;document.getElementById('floor').textContent=floor;
+  if(navigator.vibrate)navigator.vibrate(12);
+  // Scroll camera if getting high
+  if(newY<H*.4)blocks.forEach(b=>b.y+=H*.25);
+  newMoving();
+}
+
+function loop(){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  ctx.clearRect(0,0,W,H);
+  // Sky gradient
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1a0050');g.addColorStop(1,'#2d0080');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Stars
+  if(!loop.stars){loop.stars=[];for(let i=0;i<50;i++)loop.stars.push({x:Math.random()*W,y:Math.random()*H*.7,r:Math.random()*1.5});}
+  loop.stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill();});
+  // Ground
+  ctx.fillStyle='#3a2000';ctx.fillRect(0,H-6,W,6);
+  // Placed blocks
+  blocks.forEach((b,i)=>{
+    const g2=ctx.createLinearGradient(b.x,b.y,b.x+b.w,b.y+BLOCK_H);
+    g2.addColorStop(0,b.color+'cc');g2.addColorStop(1,b.color+'88');
+    ctx.fillStyle=g2;ctx.fillRect(b.x,b.y,b.w,BLOCK_H);
+    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.strokeRect(b.x,b.y,b.w,BLOCK_H);
+    if(b.w>30){ctx.font=`${Math.min(BLOCK_H*.7,b.w*.4)}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.emoji,b.x+b.w/2,b.y+BLOCK_H/2);}
+  });
+  // Moving block
+  if(!gameOver){
+    moving.x+=moving.dir*moving.speed;
+    if(moving.x>W)moving.dir=-1;if(moving.x+moving.w<0)moving.dir=1;
+    const my=blocks[blocks.length-1].y-BLOCK_H;
+    const g3=ctx.createLinearGradient(moving.x,my,moving.x+moving.w,my+BLOCK_H);
+    g3.addColorStop(0,moving.color+'dd');g3.addColorStop(1,moving.color+'99');
+    ctx.fillStyle=g3;ctx.fillRect(moving.x,my,moving.w,BLOCK_H);
+    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=2;ctx.strokeRect(moving.x,my,moving.w,BLOCK_H);
+    if(moving.w>30){ctx.font=`${Math.min(BLOCK_H*.7,moving.w*.4)}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(moving.emoji,moving.x+moving.w/2,my+BLOCK_H/2);}
+  }
+  // Floor counter
+  ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='18px Fredoka One';ctx.textAlign='center';
+  ctx.fillText(`Floor ${floor}`,W/2,60);
+}
+
+function endGame(){
+  gameOver=true;running=false;cancelAnimationFrame(raf);
+  if(floor>best){best=floor;localStorage.setItem('castle_best',floor);document.getElementById('best').textContent=floor;}
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=floor>=15?'Castle Master! 👑':floor>=8?'Great Builder! 🏰':'Keep Building! 🧱';
+  document.getElementById('finalScore').textContent=`Reached Floor ${floor}! Best: ${best}`;
+}
+
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(running&&!gameOver)drop();else if(!running)startGame();});
+document.getElementById('best').textContent=best;
+resize();
+</script></body></html>

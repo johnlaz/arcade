@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🧁 Bakery Boss!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#2d0a1e,#1a0a0e);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-right{font-size:.85rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px;gap:6px}
+/* Cupcake display */
+.cupcake-display{flex:1;display:flex;align-items:center;justify-content:center;position:relative;width:100%;max-width:360px}
+#cupcakeCanvas{border-radius:20px;background:rgba(255,255,255,.04);display:block}
+/* Topping palette */
+.palette-section{width:100%;max-width:360px;display:flex;flex-direction:column;gap:6px}
+.palette-label{font-size:.72rem;color:rgba(255,255,255,.5);text-align:center}
+.topping-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.topping-btn{width:clamp(46px,11vw,58px);height:clamp(46px,11vw,58px);border-radius:14px;cursor:pointer;touch-action:manipulation;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.2rem;gap:1px;transition:all .12s}
+.topping-btn:active{transform:scale(.87)}
+.topping-btn.active{border-color:#FFD700;background:rgba(255,215,0,.15);box-shadow:0 0 12px rgba(255,215,0,.3)}
+.topping-nm{font-size:.42rem;color:rgba(255,255,255,.6)}
+.action-row{display:flex;gap:8px;justify-content:center}
+.action-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;padding:8px 16px;cursor:pointer;touch-action:manipulation;color:#fff;font-family:'Fredoka One',cursive;font-size:.8rem}
+.action-btn.save{background:linear-gradient(135deg,#FF6B9D,#C77DFF);}
+.action-btn:active{transform:scale(.93)}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(20,5,10,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:bob 1.5s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-10px) rotate(5deg)}}
+.ov-title{font-size:2rem;color:#FF6B9D;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.play-btn{background:linear-gradient(135deg,#FF6B9D,#C77DFF);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(255,107,157,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🧁 Bakery Boss!</div>
+  <div class="hud-right">🍰 <span id="cakeCount">0</span> cakes made</div>
+</div>
+<div id="stage">
+  <div class="cupcake-display">
+    <canvas id="cupcakeCanvas"></canvas>
+  </div>
+  <div class="palette-section">
+    <div class="palette-label">🎨 FROSTING</div>
+    <div class="topping-row" id="frostingRow"></div>
+    <div class="palette-label">✨ TOPPINGS — tap to place on cupcake</div>
+    <div class="topping-row" id="toppingRow"></div>
+    <div class="action-row">
+      <button class="action-btn" onclick="clearCake()">🗑 Clear</button>
+      <button class="action-btn" onclick="newCake()">🧁 New Cake</button>
+      <button class="action-btn save" onclick="saveCake()">📸 Save!</button>
+    </div>
+  </div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🧁</div>
+  <div class="ov-title">Bakery Boss!</div>
+  <div class="ov-sub">Decorate cupcakes your way!<br>Pick frosting colors and add toppings!</div>
+  <button class="play-btn" onclick="startGame()">Open Bakery! 🎂</button>
+</div>
+<script>
+const FROSTINGS=[
+  {name:'Pink',color:'#FF6B9D'},{name:'Purple',color:'#C77DFF'},{name:'Blue',color:'#00E5FF'},
+  {name:'Yellow',color:'#FFD700'},{name:'Green',color:'#69FF47'},{name:'Orange',color:'#FF9500'},
+  {name:'White',color:'#f0f0f0'},{name:'Choc',color:'#5c3317'},
+];
+const TOPPINGS=['🍓','🫐','🍒','⭐','🌸','🎀','🦋','💎','🌈','✨','🍫','🍬','🍭','🎂','💜','❤️'];
+let canvas,ctx,W,H,frostingColor='#FF6B9D',placedToppings=[],cakeCount=+localStorage.getItem('bakery_count')||0;
+let dragTopping=null;
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  setupCanvas();buildPalette();
+  document.getElementById('cakeCount').textContent=cakeCount;
+}
+
+function setupCanvas(){
+  canvas=document.getElementById('cupcakeCanvas');
+  const disp=document.querySelector('.cupcake-display');
+  const sz=Math.min(disp.offsetWidth-16,disp.offsetHeight-16,300);
+  canvas.width=canvas.height=sz;canvas.style.width=canvas.style.height=sz+'px';
+  W=H=sz;ctx=canvas.getContext('2d');
+  drawCupcake();
+  canvas.addEventListener('pointerdown',onCanvasTap);
+}
+
+function buildPalette(){
+  const fr=document.getElementById('frostingRow');fr.innerHTML='';
+  FROSTINGS.forEach(f=>{
+    const btn=document.createElement('div');btn.className='topping-btn';
+    btn.style.background=f.color;
+    btn.innerHTML=`<div class="topping-nm">${f.name}</div>`;
+    btn.addEventListener('pointerdown',()=>{frostingColor=f.color;document.querySelectorAll('#frostingRow .topping-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');drawCupcake();});
+    fr.appendChild(btn);
+  });
+  const tr=document.getElementById('toppingRow');tr.innerHTML='';
+  TOPPINGS.forEach(t=>{
+    const btn=document.createElement('div');btn.className='topping-btn';btn.textContent=t;
+    btn.innerHTML=`${t}<div class="topping-nm">${t}</div>`;
+    btn.addEventListener('pointerdown',e=>{e.preventDefault();selectTopping(t,btn);});
+    tr.appendChild(btn);
+  });
+}
+
+let selectedTopping=null;
+function selectTopping(t,btn){
+  selectedTopping=t;
+  document.querySelectorAll('#toppingRow .topping-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(navigator.vibrate)navigator.vibrate(8);
+}
+
+function onCanvasTap(e){
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const x=(e.clientX-r.left)*(W/r.width);
+  const y=(e.clientY-r.top)*(H/r.height);
+  if(selectedTopping){
+    placedToppings.push({t:selectedTopping,x,y});
+    drawCupcake();if(navigator.vibrate)navigator.vibrate(10);
+  }
+}
+
+function drawCupcake(){
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H*.65;
+  // Cupcake wrapper
+  ctx.fillStyle='#c8a060';
+  ctx.beginPath();ctx.moveTo(cx-W*.22,cy-H*.02);ctx.lineTo(cx-W*.18,cy+H*.25);ctx.lineTo(cx+W*.18,cy+H*.25);ctx.lineTo(cx+W*.22,cy-H*.02);ctx.closePath();ctx.fill();
+  // Wrapper lines
+  ctx.strokeStyle='rgba(0,0,0,.15)';ctx.lineWidth=1;
+  for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(cx+i*W*.07,cy-H*.02);ctx.lineTo(cx+i*W*.06,cy+H*.25);ctx.stroke();}
+  // Frosting
+  const fg=ctx.createRadialGradient(cx-W*.08,cy-H*.18,0,cx,cy-H*.1,W*.3);
+  fg.addColorStop(0,'rgba(255,255,255,.4)');fg.addColorStop(.5,frostingColor);fg.addColorStop(1,frostingColor+'cc');
+  ctx.fillStyle=fg;
+  ctx.beginPath();ctx.ellipse(cx,cy-H*.05,W*.25,H*.05,0,0,Math.PI*2);ctx.fill();
+  // Frosting swirl
+  ctx.beginPath();ctx.ellipse(cx,cy-H*.12,W*.2,H*.1,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx+W*.04,cy-H*.2,W*.14,H*.09,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx-W*.02,cy-H*.28,W*.1,H*.08,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx+W*.02,cy-H*.35,W*.06,H*.06,0,0,Math.PI*2);ctx.fill();
+  // Toppings
+  placedToppings.forEach(tp=>{
+    ctx.font=`${W*.1}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(tp.t,tp.x,tp.y);
+  });
+}
+
+function clearCake(){placedToppings=[];selectedTopping=null;document.querySelectorAll('#toppingRow .topping-btn').forEach(b=>b.classList.remove('active'));drawCupcake();}
+function newCake(){clearCake();frostingColor=FROSTINGS[Math.floor(Math.random()*FROSTINGS.length)].color;drawCupcake();}
+function saveCake(){
+  cakeCount++;localStorage.setItem('bakery_count',cakeCount);document.getElementById('cakeCount').textContent=cakeCount;
+  const a=document.createElement('a');a.download='my-cupcake.png';a.href=canvas.toDataURL();a.click();
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FF6B9D,#C77DFF);color:#fff;font-family:"Fredoka One",cursive;font-size:.9rem;padding:8px 18px;border-radius:12px;z-index:50;pointer-events:none';
+  el.textContent='🎉 Cupcake saved!';document.body.appendChild(el);setTimeout(()=>el.remove(),2000);
+  if(navigator.vibrate)navigator.vibrate([20,10,30]);
+}
+window.addEventListener('resize',()=>{if(ctx)setupCanvas();});
+</script></body></html>

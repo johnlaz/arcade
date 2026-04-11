@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🎈 Pop It Frenzy!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden;height:100dvh;width:100vw;user-select:none;background:linear-gradient(135deg,#1a0a2e,#2d0845)}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff}
+.hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.hud-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700}
+.hud-time{font-family:'Fredoka One',cursive;font-size:.8rem;color:#FF6B9D}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;overflow:hidden}
+.bubble-grid{display:grid;gap:6px;padding:10px}
+.bubble{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.5),transparent 60%),var(--c);
+  border:2px solid rgba(255,255,255,.3);box-shadow:0 4px 12px rgba(0,0,0,.3);
+  transition:transform .1s;position:relative;overflow:hidden}
+.bubble:active{transform:scale(.85)}
+.bubble.popped{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.1)!important;box-shadow:none!important}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,5,30,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:5rem;animation:pop 1s ease-in-out infinite alternate}
+@keyframes pop{from{transform:scale(1)}to{transform:scale(1.15)}}
+.ov-title{font-family:'Fredoka One',cursive;font-size:2rem;color:#C77DFF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.ov-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700}
+.play-btn{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:22px;padding:13px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.4)}
+.play-btn:active{transform:scale(.94)}
+.timer-bar{width:90%;max-width:340px;height:12px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-top:4px}
+.timer-fill{height:100%;background:linear-gradient(90deg,#FF6B9D,#C77DFF);border-radius:6px;transition:width .1s linear}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🎈 Pop It Frenzy!</div>
+  <div class="hud-right">
+    <div class="hud-score">⭐ <span id="score">0</span></div>
+    <div class="hud-time">⏱ <span id="timeLeft">30</span>s</div>
+  </div>
+</div>
+<div id="stage">
+  <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+  <div class="bubble-grid" id="grid"></div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🎈</div>
+  <div class="ov-title">Pop It Frenzy!</div>
+  <div class="ov-sub">Pop as many bubbles as you can in 30 seconds!<br>Keep popping — they refill!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Pop! 💥</button>
+</div>
+<script>
+const COLORS=['#FF6B9D','#C77DFF','#00E5FF','#69FF47','#FFD700','#FF9500','#00CED1','#FF6347'];
+const EMOJIS=['🎈','✨','⭐','💜','🌸','💛','💙','🌟','🎀','💎'];
+let score=0,timeLeft=30,timer=null,running=false,cols=5,rows=7;
+
+function buildGrid(){
+  const grid=document.getElementById('grid');
+  const stage=document.getElementById('stage');
+  const sw=stage.offsetWidth-20,sh=stage.offsetHeight-30;
+  const cellSize=Math.min(Math.floor(sw/cols)-6,Math.floor(sh/rows)-6,70);
+  grid.style.gridTemplateColumns=`repeat(${cols},${cellSize}px)`;
+  grid.innerHTML='';
+  for(let i=0;i<cols*rows;i++){
+    const b=document.createElement('div');b.className='bubble';
+    const c=COLORS[i%COLORS.length];b.style.setProperty('--c',c);
+    b.textContent=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    b.style.width=cellSize+'px';
+    b.addEventListener('pointerdown',e=>{e.preventDefault();popBubble(b);});
+    grid.appendChild(b);
+  }
+}
+
+function popBubble(b){
+  if(!running||b.classList.contains('popped'))return;
+  b.classList.add('popped');b.textContent='';
+  score++;document.getElementById('score').textContent=score;
+  if(navigator.vibrate)navigator.vibrate(6);
+  // Refill after delay
+  setTimeout(()=>{
+    if(!running)return;
+    b.classList.remove('popped');
+    b.style.setProperty('--c',COLORS[Math.floor(Math.random()*COLORS.length)]);
+    b.textContent=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  },600+Math.random()*800);
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  buildGrid();score=0;timeLeft=30;running=true;
+  document.getElementById('score').textContent=0;
+  document.getElementById('timeLeft').textContent=30;
+  document.getElementById('timerFill').style.width='100%';
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timeLeft').textContent=timeLeft;
+    document.getElementById('timerFill').style.width=(timeLeft/30*100)+'%';
+    if(timeLeft<=0){clearInterval(timer);endGame();}
+  },1000);
+}
+
+function endGame(){
+  running=false;
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=score>=80?'Bubble Master! 🌟':score>=40?'Great Popping! 💥':'Try Again! 💪';
+  document.getElementById('finalScore').textContent=`You popped ${score} bubbles!`;
+}
+
+window.addEventListener('resize',()=>{if(!running)return;buildGrid();});
+buildGrid();
+</script></body></html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🦈 Shark Dodge!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden;height:100dvh;width:100vw;user-select:none;
+  background:linear-gradient(180deg,#006994 0%,#004d6e 40%,#003352 100%)}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff}
+.hud-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,30,60,.88);backdrop-filter:blur(14px)}
+.ov-ico{font-size:5rem;animation:swim 2s ease-in-out infinite alternate}
+@keyframes swim{from{transform:translateX(-20px)}to{transform:translateX(20px)}}
+.ov-title{font-family:'Fredoka One',cursive;font-size:2rem;color:#00E5FF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.ov-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700}
+.play-btn{background:linear-gradient(135deg,#00E5FF,#006994);border:none;border-radius:22px;padding:13px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(0,229,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🦈 Shark Dodge!</div>
+  <div class="hud-score">💎<span id="score">0</span> ❤️<span id="lives">3</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="overlay">
+  <div class="ov-ico">🐠</div>
+  <div class="ov-title">Shark Dodge!</div>
+  <div class="ov-sub">Swipe or drag to dodge sharks!<br>Collect 💎 treasure!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Dive In! 🌊</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,fish,sharks=[],gems=[],bubbles=[],score=0,lives=3,frame=0,raf,running=false,speed=2;
+const SHARKS=['🦈','🦈','🦈'];const GEMS=['💎','⭐','🪙','💰'];
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+window.addEventListener('resize',resize);
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';resize();
+  fish={x:W*.15,y:H/2,tx:W*.15,ty:H/2,size:H*.05};
+  sharks=[];gems=[];bubbles=[];score=0;lives=3;frame=0;speed=2;
+  document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3;
+  running=true;loop();
+}
+
+function spawnShark(){
+  const fromRight=Math.random()>.5;
+  sharks.push({x:fromRight?W+60:-60,y:H*(.1+Math.random()*.8),
+    speed:(speed+Math.random()*1.5)*(fromRight?-1:1),
+    size:H*.06,flip:fromRight});
+}
+function spawnGem(){gems.push({x:W*(.2+Math.random()*.6),y:H*(.1+Math.random()*.8),size:H*.035,angle:0,speed:1+Math.random()});}
+
+function loop(){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  ctx.clearRect(0,0,W,H);
+  frame++;speed=2+score*.03;
+
+  // Ocean gradient
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#006994');g.addColorStop(1,'#001a33');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  // Caustic light rays
+  ctx.save();ctx.globalAlpha=.06;
+  for(let i=0;i<5;i++){ctx.fillStyle='#00E5FF';ctx.beginPath();ctx.moveTo(W*.1+i*W*.2,-10);ctx.lineTo(W*.05+i*W*.2,H);ctx.lineTo(W*.15+i*W*.2,H);ctx.closePath();ctx.fill();}
+  ctx.restore();
+
+  // Bubbles
+  if(frame%20===0)bubbles.push({x:fish.x,y:fish.y,r:2+Math.random()*4,vy:-(1+Math.random()),opacity:1});
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b=bubbles[i];b.y+=b.vy;b.opacity-=.02;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.strokeStyle=`rgba(255,255,255,${b.opacity})`;ctx.lineWidth=1.5;ctx.stroke();
+    if(b.opacity<=0)bubbles.splice(i,1);
+  }
+
+  // Fish movement
+  fish.x+=(fish.tx-fish.x)*.1;fish.y+=(fish.ty-fish.y)*.1;
+  ctx.font=`${fish.size*2.2}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🐠',fish.x,fish.y);
+
+  // Spawn
+  if(frame%Math.max(35,90-score*2)===0)spawnShark();
+  if(frame%120===0)spawnGem();
+
+  // Gems
+  for(let i=gems.length-1;i>=0;i--){
+    const gm=gems[i];gm.angle+=.05;gm.y+=Math.sin(gm.angle)*.5;
+    ctx.font=`${gm.size*2.2}px serif`;ctx.fillText(GEMS[i%GEMS.length],gm.x,gm.y);
+    const dx=gm.x-fish.x,dy=gm.y-fish.y;
+    if(dx*dx+dy*dy<(gm.size+fish.size)*(gm.size+fish.size)*4){gems.splice(i,1);score++;document.getElementById('score').textContent=score;if(navigator.vibrate)navigator.vibrate(10);}
+    if(gm.y>H+60||gm.y<-60)gems.splice(i,1);
+  }
+
+  // Sharks
+  for(let i=sharks.length-1;i>=0;i--){
+    const s=sharks[i];s.x+=s.speed;
+    ctx.save();if(!s.flip){ctx.scale(-1,1);ctx.translate(-W,0);}
+    ctx.font=`${s.size*2.4}px serif`;ctx.fillText('🦈',s.flip?W-s.x:s.x,s.y);
+    ctx.restore();
+    const dx=s.x-fish.x,dy=s.y-fish.y;
+    if(dx*dx+dy*dy<(s.size+fish.size)*(s.size+fish.size)*3.5){
+      sharks.splice(i,1);lives--;document.getElementById('lives').textContent=lives;
+      if(navigator.vibrate)navigator.vibrate([60,30,60]);if(lives<=0){endGame();return;}
+      continue;
+    }
+    if(s.x>W+80||s.x<-80)sharks.splice(i,1);
+  }
+}
+
+function endGame(){
+  running=false;cancelAnimationFrame(raf);
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=score>=20?'Deep Sea Hero! 🌊':score>=8?'Great Swim! 🐠':'Try Again! 💪';
+  document.getElementById('finalScore').textContent=`Collected ${score} treasures!`;
+}
+
+canvas.addEventListener('pointermove',e=>{if(running){fish.tx=e.clientX;fish.ty=e.clientY-52;}});
+canvas.addEventListener('pointerdown',e=>{if(!running)return;fish.tx=e.clientX;fish.ty=e.clientY-52;});
+resize();
+</script></body></html>

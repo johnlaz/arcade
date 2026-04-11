@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🎤 Echo Echo!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#0a0a2e,#1a002e);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-score{font-size:.9rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:16px}
+.round-badge{background:linear-gradient(135deg,#C77DFF,#FF6B9D);padding:6px 20px;border-radius:20px;font-size:1rem;color:#fff}
+.msg{font-size:1.1rem;color:#fff;text-align:center;min-height:1.6rem}
+.seq-display{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:60px;align-items:center}
+.seq-pip{width:clamp(36px,9vw,52px);height:clamp(36px,9vw,52px);border-radius:50%;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;opacity:.4;transition:all .2s}
+.seq-pip.lit{opacity:1;transform:scale(1.2);box-shadow:0 0 20px currentColor}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:320px}
+.echo-btn{aspect-ratio:1;border-radius:22px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(2.5rem,10vw,3.5rem);border:3px solid rgba(255,255,255,.2);transition:all .15s;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.echo-btn:active,.echo-btn.lit{filter:brightness(1.7);transform:scale(.93);box-shadow:0 0 24px currentColor}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,0,20,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:pulse 1.2s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.12)}}
+.ov-title{font-size:2rem;color:#C77DFF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.ov-score{font-size:1.2rem;color:#FFD700}
+.play-btn{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🎤 Echo Echo!</div>
+  <div class="hud-score">Round <span id="round">1</span> | Best <span id="best">0</span></div>
+</div>
+<div id="stage">
+  <div class="round-badge" id="roundBadge">Round 1</div>
+  <div class="msg" id="msg">Watch the pattern...</div>
+  <div class="seq-display" id="seqDisplay"></div>
+  <div class="buttons" id="buttons"></div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🎤</div>
+  <div class="ov-title">Echo Echo!</div>
+  <div class="ov-sub">Watch the pattern light up, then repeat it back in the same order!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Let's Echo! 🎵</button>
+</div>
+<script>
+const BTNS=[
+  {emoji:'🌟',color:'#FFD700',freq:261.6},
+  {emoji:'💜',color:'#C77DFF',freq:329.6},
+  {emoji:'💙',color:'#00E5FF',freq:392},
+  {emoji:'💚',color:'#69FF47',freq:523.2},
+];
+let sequence=[],playerSeq=[],round=1,best=+localStorage.getItem('echo_best')||0,playing=false,locked=true;
+let audioCtx=null;
+
+function playTone(freq,dur=300){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const osc=audioCtx.createOscillator();const gain=audioCtx.createGain();
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  osc.type='sine';osc.frequency.value=freq;
+  gain.gain.setValueAtTime(.35,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur/1000);
+  osc.start();osc.stop(audioCtx.currentTime+dur/1000);
+}
+
+function buildUI(){
+  const bRow=document.getElementById('buttons');bRow.innerHTML='';
+  BTNS.forEach((b,i)=>{
+    const el=document.createElement('div');el.className='echo-btn';el.id='ebtn'+i;
+    el.style.background=`linear-gradient(135deg,${b.color}55,${b.color}22)`;
+    el.style.borderColor=b.color+'55';el.textContent=b.emoji;
+    el.addEventListener('pointerdown',e=>{e.preventDefault();tapBtn(i);});
+    bRow.appendChild(el);
+  });
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  buildUI();sequence=[];playerSeq=[];round=1;
+  document.getElementById('round').textContent=1;document.getElementById('best').textContent=best;
+  document.getElementById('roundBadge').textContent='Round 1';
+  addAndPlay();
+}
+
+function addAndPlay(){
+  sequence.push(Math.floor(Math.random()*4));
+  playerSeq=[];locked=true;
+  document.getElementById('msg').textContent='Watch the pattern... 👀';
+  // Show sequence pips
+  const sd=document.getElementById('seqDisplay');sd.innerHTML='';
+  sequence.forEach((_,i)=>{
+    const pip=document.createElement('div');pip.className='seq-pip';
+    pip.style.background=BTNS[sequence[i]].color+'44';pip.style.color=BTNS[sequence[i]].color;
+    pip.textContent='●';sd.appendChild(pip);
+  });
+  // Play sequence
+  let delay=600;
+  sequence.forEach((idx,i)=>{
+    setTimeout(()=>{
+      lightBtn(idx,500);
+      const pip=document.getElementById('seqDisplay').children[i];
+      if(pip){pip.classList.add('lit');pip.style.color=BTNS[idx].color;setTimeout(()=>pip.classList.remove('lit'),400);}
+      playTone(BTNS[idx].freq,350);
+      if(i===sequence.length-1)setTimeout(()=>{locked=false;document.getElementById('msg').textContent='Your turn! Repeat the pattern! 🎤';},600);
+    },delay);
+    delay+=650;
+  });
+}
+
+function lightBtn(idx,dur=300){
+  const el=document.getElementById('ebtn'+idx);if(!el)return;
+  el.classList.add('lit');setTimeout(()=>el.classList.remove('lit'),dur);
+}
+
+function tapBtn(idx){
+  if(locked)return;
+  lightBtn(idx,250);playTone(BTNS[idx].freq,200);
+  if(navigator.vibrate)navigator.vibrate(10);
+  playerSeq.push(idx);
+  const pos=playerSeq.length-1;
+  if(playerSeq[pos]!==sequence[pos]){
+    // Wrong!
+    document.getElementById('msg').textContent='Oops! Wrong order! 😅';
+    locked=true;
+    if(sequence.length>best){best=sequence.length;localStorage.setItem('echo_best',best);document.getElementById('best').textContent=best;}
+    setTimeout(()=>{
+      const ov=document.getElementById('overlay');ov.style.display='flex';
+      ov.querySelector('.ov-title').textContent=sequence.length>=8?'Echo Master! 🌟':sequence.length>=4?'Great Memory! 🧠':'Nice Try! 💪';
+      document.getElementById('finalScore').textContent=`You reached Round ${sequence.length}! Best: ${best}`;
+    },800);
+    return;
+  }
+  if(playerSeq.length===sequence.length){
+    // Correct!
+    locked=true;round=sequence.length+1;
+    document.getElementById('msg').textContent='🎉 Correct! Next round!';
+    document.getElementById('round').textContent=round;
+    document.getElementById('roundBadge').textContent='Round '+round;
+    setTimeout(addAndPlay,1000);
+  }
+}
+buildUI();
+</script></body></html>

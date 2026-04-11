@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🔭 Connect the Stars!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse at center,#0a0a2e,#000015);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-info{font-size:.85rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px - 60px);display:block}
+#bottom{position:fixed;bottom:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px)}
+.constell-name{font-size:1rem;color:#C77DFF;text-align:center;flex:1}
+.nav-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:8px 16px;color:#fff;cursor:pointer;touch-action:manipulation;font-family:'Fredoka One',cursive;font-size:.85rem}
+.nav-btn:active{background:rgba(255,255,255,.2)}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,10,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:twinkle 1s ease-in-out infinite alternate}
+@keyframes twinkle{from{filter:brightness(1)}to{filter:brightness(2) drop-shadow(0 0 10px #FFD700)}}
+.ov-title{font-size:2rem;color:#FFD700;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.play-btn{background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(255,215,0,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🔭 Connect the Stars!</div>
+  <div class="hud-info">⭐ <span id="progress">0</span>/<span id="total">0</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="bottom">
+  <button class="nav-btn" onclick="prevConstell()">◀</button>
+  <div class="constell-name" id="constellName">Orion</div>
+  <button class="nav-btn" onclick="nextConstell()">▶</button>
+</div>
+<div id="overlay">
+  <div class="ov-ico">⭐</div>
+  <div class="ov-title">Connect the Stars!</div>
+  <div class="ov-sub">Tap the numbered stars in order to draw constellations!<br>Discover the shapes in the night sky!</div>
+  <button class="play-btn" onclick="startGame()">Stargaze! 🌌</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+
+// Constellations — positions as % of canvas
+const CONSTELLATIONS=[
+  {name:'🌟 The Big Dipper',emoji:'🐻',fact:'The Big Dipper looks like a giant spoon!',color:'#FFD700',
+   stars:[[.3,.3],[.45,.25],[.6,.28],[.72,.25],[.78,.38],[.72,.48],[.6,.45]]},
+  {name:'🏹 Orion the Hunter',emoji:'🏹',fact:'Orion is a great hunter in the sky!',color:'#00E5FF',
+   stars:[[.35,.2],[.65,.2],[.3,.4],[.5,.38],[.7,.4],[.4,.55],[.6,.55],[.5,.72]]},
+  {name:'♋ The Crab (Cancer)',emoji:'🦀',fact:'Cancer looks like a tiny crab!',color:'#FF6B9D',
+   stars:[[.5,.2],[.3,.4],[.7,.4],[.4,.6],[.6,.6],[.5,.78]]},
+  {name:'🦁 Leo the Lion',emoji:'🦁',fact:'Leo looks like a lion resting!',color:'#FF9500',
+   stars:[[.25,.35],[.35,.22],[.5,.2],[.62,.3],[.68,.45],[.6,.6],[.4,.65],[.3,.55]]},
+  {name:'🐉 Draco the Dragon',emoji:'🐉',fact:'Draco winds like a dragon through the sky!',color:'#69FF47',
+   stars:[[.5,.15],[.38,.25],[.3,.4],[.38,.55],[.52,.65],[.65,.55],[.72,.4],[.65,.25]]},
+  {name:'✝️ The Southern Cross',emoji:'⭐',fact:'Sailors use this cross to find south!',color:'#C77DFF',
+   stars:[[.5,.18],[.5,.82],[.18,.5],[.82,.5],[.5,.5]]},
+];
+
+let currentIdx=0,connected=[],bgStars=[];
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+window.addEventListener('resize',()=>{resize();buildBgStars();drawScene();});
+
+function buildBgStars(){
+  bgStars=[];for(let i=0;i<120;i++)bgStars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5,a:Math.random()});
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';resize();buildBgStars();loadConstell(0);
+}
+
+function loadConstell(idx){
+  currentIdx=idx;connected=[];
+  const c=CONSTELLATIONS[idx];
+  document.getElementById('constellName').textContent=c.name;
+  document.getElementById('total').textContent=c.stars.length;
+  document.getElementById('progress').textContent=0;
+  drawScene();
+}
+
+function drawScene(){
+  ctx.clearRect(0,0,W,H);
+  // BG stars
+  bgStars.forEach(s=>{ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${.3+s.a*.5})`;ctx.fill();});
+  const c=CONSTELLATIONS[currentIdx];
+  // Draw connections
+  ctx.strokeStyle=c.color+'88';ctx.lineWidth=2;ctx.setLineDash([8,4]);
+  for(let i=0;i<connected.length-1;i++){
+    const a=c.stars[connected[i]],b=c.stars[connected[i+1]];
+    ctx.beginPath();ctx.moveTo(a[0]*W,a[1]*H);ctx.lineTo(b[0]*W,b[1]*H);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // Stars
+  c.stars.forEach((s,i)=>{
+    const x=s[0]*W,y=s[1]*H;
+    const done=connected.includes(i);
+    const next=connected.length===i;
+    // Glow
+    if(done||next){
+      const g=ctx.createRadialGradient(x,y,0,x,y,20);g.addColorStop(0,c.color+'66');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,20,0,Math.PI*2);ctx.fill();
+    }
+    // Star body
+    ctx.fillStyle=done?c.color:next?'#fff':'rgba(255,255,255,.5)';
+    ctx.beginPath();ctx.arc(x,y,done?8:next?10:6,0,Math.PI*2);ctx.fill();
+    // Number
+    ctx.fillStyle=done?'#000':'#000';ctx.font=`bold ${next?13:10}px Fredoka One`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,x,y);
+  });
+  // If complete, show constellation name + emoji
+  if(connected.length===c.stars.length){
+    ctx.font='clamp(2rem,10vw,4rem) serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(c.emoji,W/2,H*.88);
+    ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='Fredoka One';ctx.font=`${W*.045}px Fredoka One`;
+    ctx.fillText(c.fact,W/2,H*.78);
+  }
+}
+
+canvas.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  const tx=(e.clientX-rect.left)*(W/rect.width);
+  const ty=(e.clientY-rect.top)*(H/rect.height);
+  const c=CONSTELLATIONS[currentIdx];
+  const nextIdx=connected.length;
+  if(nextIdx>=c.stars.length)return;
+  const star=c.stars[nextIdx];
+  const dist=Math.hypot(tx-star[0]*W,ty-star[1]*H);
+  if(dist<30){
+    connected.push(nextIdx);
+    document.getElementById('progress').textContent=connected.length;
+    if(navigator.vibrate)navigator.vibrate(12);
+    drawScene();
+  }
+});
+
+function prevConstell(){loadConstell((currentIdx-1+CONSTELLATIONS.length)%CONSTELLATIONS.length);}
+function nextConstell(){loadConstell((currentIdx+1)%CONSTELLATIONS.length);}
+resize();buildBgStars();
+</script></body></html>

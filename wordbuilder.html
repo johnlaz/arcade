@@ -1,0 +1,158 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🔡 Word Builder!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#0a1a3e,#1a0a2e);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive;display:flex;flex-direction:column;align-items:center}
+#hud{width:100%;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);flex-shrink:0}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-score{font-size:1rem;color:#FFD700}
+#stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;width:100%}
+.word-pic{font-size:clamp(5rem,22vw,9rem);text-align:center;filter:drop-shadow(0 6px 16px rgba(0,0,0,.4));animation:picBob 2s ease-in-out infinite alternate}
+@keyframes picBob{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+.word-hint{font-size:clamp(.9rem,3vw,1.2rem);color:rgba(255,255,255,.6);text-align:center}
+.slots{display:flex;gap:8px;justify-content:center}
+.slot{width:clamp(48px,12vw,64px);height:clamp(56px,14vw,72px);border-radius:14px;
+  background:rgba(255,255,255,.08);border:2.5px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.6rem,5vw,2.2rem);color:#fff;transition:all .2s;cursor:pointer;touch-action:manipulation}
+.slot.filled{background:rgba(99,102,241,.3);border-color:#818cf8}
+.slot.correct{background:rgba(105,255,71,.2);border-color:#69FF47;color:#69FF47}
+.slot.wrong{background:rgba(255,107,107,.2);border-color:#FF6B6B;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.letters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:320px}
+.letter-btn{width:clamp(52px,13vw,68px);height:clamp(52px,13vw,68px);border-radius:14px;
+  border:2.5px solid rgba(255,255,255,.25);cursor:pointer;touch-action:manipulation;
+  font-size:clamp(1.5rem,4.5vw,2rem);color:#fff;transition:all .12s;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.letter-btn:active{transform:scale(.88)}
+.letter-btn.used{opacity:.25;pointer-events:none}
+.msg{font-size:1rem;color:#C77DFF;text-align:center;min-height:1.4rem}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,5,30,.9);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:picBob 1.5s ease-in-out infinite alternate}
+.ov-title{font-size:2rem;color:#00E5FF;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.play-btn{background:linear-gradient(135deg,#00E5FF,#0066cc);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(0,229,255,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🔡 Word Builder!</div>
+  <div class="hud-score">⭐ <span id="score">0</span> / <span id="total">?</span></div>
+</div>
+<div id="stage">
+  <div class="word-pic" id="wordPic">🐱</div>
+  <div class="word-hint" id="wordHint">What animal is this?</div>
+  <div class="slots" id="slots"></div>
+  <div class="letters" id="letters"></div>
+  <div class="msg" id="msg">Tap the letters to spell the word!</div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🔡</div>
+  <div class="ov-title">Word Builder!</div>
+  <div class="ov-sub">Spell the word by tapping the letters!<br>Simple 3-letter words!</div>
+  <button class="play-btn" onclick="startGame()">Start Spelling! ✏️</button>
+</div>
+<script>
+const WORDS=[
+  {word:'CAT',emoji:'🐱',hint:'A fluffy pet that says meow!'},
+  {word:'DOG',emoji:'🐶',hint:'Man\'s best friend!'},
+  {word:'SUN',emoji:'☀️',hint:'Shines bright in the sky!'},
+  {word:'BEE',emoji:'🐝',hint:'Buzzes and makes honey!'},
+  {word:'HEN',emoji:'🐔',hint:'A farm bird that lays eggs!'},
+  {word:'PIG',emoji:'🐷',hint:'Pink and goes oink!'},
+  {word:'COW',emoji:'🐮',hint:'Says moo and gives milk!'},
+  {word:'OWL',emoji:'🦉',hint:'A wise night bird!'},
+  {word:'BUG',emoji:'🐛',hint:'A tiny crawling creature!'},
+  {word:'FLY',emoji:'🪰',hint:'A buzzing insect!'},
+  {word:'FOX',emoji:'🦊',hint:'A clever orange animal!'},
+  {word:'HAT',emoji:'🎩',hint:'You wear it on your head!'},
+  {word:'BAT',emoji:'🦇',hint:'Flies at night in caves!'},
+  {word:'RAT',emoji:'🐀',hint:'A small rodent!'},
+  {word:'CUP',emoji:'🥤',hint:'You drink from this!'},
+  {word:'JET',emoji:'✈️',hint:'A very fast airplane!'},
+  {word:'MAP',emoji:'🗺️',hint:'Shows you where to go!'},
+  {word:'NET',emoji:'🪤',hint:'Used to catch things!'},
+  {word:'POT',emoji:'🪴',hint:'Used for cooking or plants!'},
+  {word:'WIG',emoji:'💁',hint:'Fake hair you can wear!'},
+];
+const LETTER_COLORS=['#FF6B9D','#C77DFF','#00E5FF','#69FF47','#FFD700','#FF9500'];
+let wordList=[...WORDS],current=null,userAnswer=[],score=0,totalWords=WORDS.length;
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  wordList=[...WORDS].sort(()=>Math.random()-.5);
+  score=0;document.getElementById('score').textContent=0;
+  document.getElementById('total').textContent=totalWords;
+  nextWord();
+}
+
+function nextWord(){
+  if(wordList.length===0){
+    // Finished all words!
+    document.getElementById('overlay').style.display='flex';
+    document.getElementById('overlay').querySelector('.ov-title').textContent='🌟 All Done!';
+    document.getElementById('overlay').querySelector('.ov-sub').textContent=`You scored ${score}/${totalWords}! Amazing!`;
+    return;
+  }
+  current=wordList.pop();
+  userAnswer=[];
+  buildSlots();buildLetters();
+  document.getElementById('wordPic').textContent=current.emoji;
+  document.getElementById('wordHint').textContent=current.hint;
+  document.getElementById('msg').textContent='Tap the letters to spell the word!';
+}
+
+function buildSlots(){
+  const row=document.getElementById('slots');row.innerHTML='';
+  for(let i=0;i<current.word.length;i++){
+    const s=document.createElement('div');s.className='slot';s.id='slot'+i;row.appendChild(s);
+  }
+}
+
+function buildLetters(){
+  // Create shuffled letters including all correct ones plus some distractors
+  const correct=current.word.split('');
+  const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const extras=[];
+  while(extras.length<3){const l=alphabet[Math.floor(Math.random()*26)];if(!correct.includes(l))extras.push(l);}
+  const pool=[...correct,...extras].sort(()=>Math.random()-.5);
+  const row=document.getElementById('letters');row.innerHTML='';
+  pool.forEach((l,i)=>{
+    const btn=document.createElement('div');btn.className='letter-btn';
+    btn.style.background=`linear-gradient(135deg,${LETTER_COLORS[i%LETTER_COLORS.length]}88,${LETTER_COLORS[(i+1)%LETTER_COLORS.length]}55)`;
+    btn.style.borderColor=LETTER_COLORS[i%LETTER_COLORS.length]+'66';
+    btn.textContent=l;btn.dataset.idx=i;
+    btn.addEventListener('pointerdown',e=>{e.preventDefault();tapLetter(l,btn);});
+    row.appendChild(btn);
+  });
+}
+
+function tapLetter(letter,btn){
+  if(userAnswer.length>=current.word.length)return;
+  userAnswer.push({letter,btn});btn.classList.add('used');
+  const slot=document.getElementById('slot'+( userAnswer.length-1));
+  slot.textContent=letter;slot.classList.add('filled');
+  if(navigator.vibrate)navigator.vibrate(8);
+  if(userAnswer.length===current.word.length)checkWord();
+}
+
+function checkWord(){
+  const typed=userAnswer.map(a=>a.letter).join('');
+  if(typed===current.word){
+    // Correct!
+    for(let i=0;i<current.word.length;i++)document.getElementById('slot'+i).className='slot correct';
+    score++;document.getElementById('score').textContent=score;
+    document.getElementById('msg').textContent='🎉 Correct! Well done!';
+    if(navigator.vibrate)navigator.vibrate([20,10,30]);
+    setTimeout(nextWord,1400);
+  } else {
+    // Wrong
+    for(let i=0;i<current.word.length;i++)document.getElementById('slot'+i).className='slot wrong';
+    document.getElementById('msg').textContent='Not quite! Try again! 💪';
+    setTimeout(()=>{userAnswer.forEach(a=>a.btn.classList.remove('used'));userAnswer=[];buildSlots();},900);
+  }
+}
+</script></body></html>

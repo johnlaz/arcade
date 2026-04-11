@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🍎 Fruit Catch!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#1a0a2e,#0d2b1a);overflow:hidden;height:100dvh;width:100vw;user-select:none}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;
+  width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff}
+.hud-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block;cursor:none}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,5,30,.88);backdrop-filter:blur(14px)}
+.ov-ico{font-size:5rem;animation:bob 1.4s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.ov-title{font-family:'Fredoka One',cursive;font-size:2rem;color:#69FF47;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:280px}
+.ov-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FFD700}
+.play-btn{background:linear-gradient(135deg,#69FF47,#00C851);border:none;border-radius:22px;padding:13px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#003300;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(105,255,71,.4)}
+.play-btn:active{transform:scale(.94)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🍎 Fruit Catch!</div>
+  <div class="hud-score">⭐<span id="score">0</span> ❤️<span id="lives">3</span></div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="overlay">
+  <div class="ov-ico">🍎</div>
+  <div class="ov-title">Fruit Catch!</div>
+  <div class="ov-sub">Drag the basket to catch fruit!<br>Dodge 💣 bombs — they cost a life!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <button class="play-btn" onclick="startGame()">Catch! 🧺</button>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,items=[],basket={x:0,y:0,w:0,h:0},score=0,lives=3,speed=2,raf,running=false,frame=0,pointerX=null;
+const FRUITS=['🍎','🍊','🍋','🍇','🍓','🍑','🍍','🥝','🫐','🍒'];
+const BOMBS=['💣','☠️'];
+
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;
+  basket.w=W*.18;basket.h=H*.06;basket.x=W/2-basket.w/2;basket.y=H*.88;}
+window.addEventListener('resize',resize);
+
+function spawnItem(){
+  const isBomb=Math.random()<.15+score*.005;
+  items.push({
+    x:W*(.05+Math.random()*.9),y:-40,
+    emoji:isBomb?BOMBS[Math.floor(Math.random()*BOMBS.length)]:FRUITS[Math.floor(Math.random()*FRUITS.length)],
+    isBomb,speed:(speed+Math.random()*2),size:H*.045,
+  });
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  resize();items=[];score=0;lives=3;speed=2;frame=0;pointerX=W/2;basket.x=W/2-basket.w/2;
+  document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3;
+  running=true;loop();
+}
+
+function loop(){
+  if(!running)return;
+  raf=requestAnimationFrame(loop);
+  ctx.clearRect(0,0,W,H);
+  frame++;
+  speed=2+score*.06;
+
+  // Basket follows pointer
+  if(pointerX!==null){
+    const tx=pointerX-basket.w/2;
+    basket.x+=(tx-basket.x)*.18;
+    basket.x=Math.max(0,Math.min(W-basket.w,basket.x));
+  }
+
+  // Spawn
+  if(frame%Math.max(18,45-score)===0)spawnItem();
+
+  // Basket draw
+  ctx.font=`${basket.h*1.4}px serif`;ctx.textAlign='center';
+  ctx.fillText('🧺',basket.x+basket.w/2,basket.y+basket.h);
+
+  // Items
+  for(let i=items.length-1;i>=0;i--){
+    const it=items[i];it.y+=it.speed;
+    ctx.font=`${it.size*2}px serif`;ctx.textAlign='center';
+    ctx.fillText(it.emoji,it.x,it.y+it.size);
+    // Catch
+    if(it.y+it.size>basket.y && it.y<basket.y+basket.h && it.x>basket.x-it.size && it.x<basket.x+basket.w+it.size){
+      items.splice(i,1);
+      if(it.isBomb){lives--;document.getElementById('lives').textContent=lives;if(navigator.vibrate)navigator.vibrate([80,40,80]);if(lives<=0){endGame();return;}}
+      else{score++;document.getElementById('score').textContent=score;if(navigator.vibrate)navigator.vibrate(10);}
+      continue;
+    }
+    // Miss fruit (not bomb - bombs hitting ground is ok)
+    if(it.y>H+40){items.splice(i,1);if(!it.isBomb){lives--;document.getElementById('lives').textContent=lives;if(lives<=0){endGame();return;}}}
+  }
+}
+
+function endGame(){
+  running=false;cancelAnimationFrame(raf);
+  const ov=document.getElementById('overlay');ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=score>=25?'Fruit Master! 🌟':score>=10?'Great Catch! 🎉':'Try Again! 💪';
+  document.getElementById('finalScore').textContent=`You caught ${score} fruits!`;
+}
+
+canvas.addEventListener('pointermove',e=>{pointerX=e.clientX;});
+canvas.addEventListener('pointerdown',e=>{pointerX=e.clientX;});
+resize();
+</script></body></html>

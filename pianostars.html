@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>🎹 Piano Stars!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:linear-gradient(160deg,#0a0a1e,#1a0050);overflow:hidden;height:100dvh;width:100vw;user-select:none;font-family:'Fredoka One',cursive}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);z-index:10}
+.back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.hud-title{font-size:1rem;color:#fff}
+.hud-score{font-size:.9rem;color:#FFD700}
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 8px}
+.song-title{font-size:1.1rem;color:#C77DFF;text-align:center}
+.staff{flex:1;width:100%;max-width:360px;background:rgba(255,255,255,.04);border-radius:16px;border:1.5px solid rgba(255,255,255,.1);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.staff-lines{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 0}
+.staff-line{width:100%;height:1px;background:rgba(255,255,255,.08)}
+.note-display{font-size:clamp(2.5rem,10vw,4rem);text-align:center;animation:notePop .3s ease-out}
+@keyframes notePop{from{transform:scale(.7)}to{transform:scale(1)}}
+.piano{width:100%;max-width:360px;background:rgba(0,0,0,.4);border-radius:16px;padding:10px;border:1.5px solid rgba(255,255,255,.1)}
+.keys{display:flex;gap:5px;justify-content:center}
+.key{flex:1;height:clamp(70px,18vw,90px);border-radius:10px;cursor:pointer;touch-action:manipulation;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-size:clamp(.65rem,2vw,.85rem);transition:filter .1s,transform .1s;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 12px rgba(0,0,0,.4);user-select:none}
+.key:active,.key.playing{filter:brightness(1.6);transform:scale(.93)}
+.msg{font-size:1rem;color:#69FF47;min-height:1.5rem;text-align:center}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,0,20,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4.5rem;animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+.ov-title{font-size:2rem;color:#FFD700;text-align:center}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.ov-score{font-size:1.1rem;color:#C77DFF}
+.play-btn{background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(255,215,0,.4)}
+.play-btn:active{transform:scale(.94)}
+.song-select{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.song-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 14px;color:#fff;cursor:pointer;font-family:'Fredoka One',cursive;font-size:.85rem;touch-action:manipulation}
+.song-btn:active{background:rgba(255,255,255,.2)}
+</style></head><body>
+<div id="hud">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="hud-title">🎹 Piano Stars!</div>
+  <div class="hud-score">⭐ <span id="score">0</span></div>
+</div>
+<div id="stage">
+  <div class="song-title" id="songTitle">Pick a song to play!</div>
+  <div class="staff">
+    <div class="staff-lines" id="staffLines"></div>
+    <div class="note-display" id="noteDisplay">🎵</div>
+  </div>
+  <div class="piano">
+    <div class="keys" id="keys"></div>
+  </div>
+  <div class="msg" id="msg">Choose a song below!</div>
+</div>
+<div id="overlay">
+  <div class="ov-ico">🎹</div>
+  <div class="ov-title">Piano Stars!</div>
+  <div class="ov-sub">Watch the key light up — tap it to play!<br>Follow along to the melody!</div>
+  <div class="ov-score" id="finalScore"></div>
+  <div class="song-select">
+    <button class="song-btn" onclick="pickSong(0)">⭐ Twinkle</button>
+    <button class="song-btn" onclick="pickSong(1)">🎂 Happy B-Day</button>
+    <button class="song-btn" onclick="pickSong(2)">🐑 Baa Baa</button>
+    <button class="song-btn" onclick="pickSong(3)">🎅 Jingle</button>
+  </div>
+</div>
+<script>
+// Keys: C D E F G A B (7 white keys)
+const KEY_NOTES=['C','D','E','F','G','A','B'];
+const KEY_COLORS=['#FF6B9D','#FF9500','#FFD700','#69FF47','#00E5FF','#C77DFF','#FF6347'];
+const KEY_EMOJIS=['🎵','🎶','🎸','🎺','🎷','🥁','🎤'];
+
+// Songs: array of {note, emoji, duration}
+const SONGS=[
+  {name:'⭐ Twinkle Twinkle',notes:'CCGGAAG_FFEEDDC_GGFFEED_GGFFEED_CCGGAAG_FFEEDDC'},
+  {name:'🎂 Happy Birthday',notes:'CCDC_FE_CCDC_GF_CCCAF_EEDDG_F'},
+  {name:'🐑 Baa Baa Black Sheep',notes:'CCGG_AAGF_EEDD_CCG_FFEED_FFEED_CCGG_AAGF_EEDD_CC'},
+  {name:'🎅 Jingle Bells',notes:'EEEEEEGCDE_FFFFEEEEDDEDG_EEEEEEGCDE_FFFFEEEGGFDC'},
+];
+
+const FREQS={C:261.6,D:293.7,E:329.6,F:349.2,G:392,A:440,B:493.9};
+let audioCtx=null;
+
+function playNote(note){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const freq=FREQS[note];if(!freq)return;
+  const osc=audioCtx.createOscillator();const gain=audioCtx.createGain();
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  osc.type='sine';osc.frequency.value=freq;
+  gain.gain.setValueAtTime(.4,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.4);
+  osc.start();osc.stop(audioCtx.currentTime+.4);
+}
+
+let currentSong=null,noteIdx=0,score=0,waitingForTap=false,currentNote=null;
+
+function buildKeys(){
+  const row=document.getElementById('keys');row.innerHTML='';
+  // Staff lines
+  const sl=document.getElementById('staffLines');sl.innerHTML='';
+  for(let i=0;i<5;i++){const l=document.createElement('div');l.className='staff-line';sl.appendChild(l);}
+  KEY_NOTES.forEach((n,i)=>{
+    const k=document.createElement('div');k.className='key';k.id='key'+n;
+    k.style.background=`linear-gradient(180deg,${KEY_COLORS[i]},${KEY_COLORS[i]}88)`;
+    k.textContent=KEY_EMOJIS[i];
+    k.addEventListener('pointerdown',e=>{e.preventDefault();tapKey(n,k);});
+    row.appendChild(k);
+  });
+}
+
+function pickSong(idx){
+  document.getElementById('overlay').style.display='none';
+  buildKeys();
+  currentSong=SONGS[idx];noteIdx=0;score=0;waitingForTap=false;
+  document.getElementById('songTitle').textContent=currentSong.name;
+  document.getElementById('score').textContent=0;
+  document.getElementById('msg').textContent='Watch for the glowing key!';
+  setTimeout(showNextNote,600);
+}
+
+function showNextNote(){
+  if(!currentSong)return;
+  const notes=currentSong.notes.replace(/_/g,'').split('').filter(c=>KEY_NOTES.includes(c));
+  if(noteIdx>=notes.length){
+    // Song complete!
+    document.getElementById('noteDisplay').textContent='🎉';
+    document.getElementById('msg').textContent='Song complete! Amazing! 🌟';
+    document.getElementById('overlay').style.display='flex';
+    document.getElementById('finalScore').textContent=`You scored ${score} / ${notes.length}!`;
+    return;
+  }
+  currentNote=notes[noteIdx];
+  waitingForTap=true;
+  // Light up the key
+  document.querySelectorAll('.key').forEach(k=>k.classList.remove('playing'));
+  const keyEl=document.getElementById('key'+currentNote);
+  if(keyEl){keyEl.classList.add('playing');setTimeout(()=>keyEl.classList.remove('playing'),400);}
+  document.getElementById('noteDisplay').textContent=KEY_EMOJIS[KEY_NOTES.indexOf(currentNote)];
+  document.getElementById('msg').textContent=`Tap the glowing key! (${currentNote})`;
+}
+
+function tapKey(note,el){
+  if(!waitingForTap)return;
+  playNote(note);
+  if(note===currentNote){
+    score++;document.getElementById('score').textContent=score;
+    document.getElementById('msg').textContent='🎵 Perfect!';
+    if(navigator.vibrate)navigator.vibrate(10);
+    waitingForTap=false;noteIdx++;
+    setTimeout(showNextNote,500);
+  } else {
+    document.getElementById('msg').textContent='Oops! Try again! 🎹';
+    el.style.filter='brightness(.5)';setTimeout(()=>el.style.filter='',200);
+  }
+}
+buildKeys();
+</script></body></html>
