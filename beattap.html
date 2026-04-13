@@ -9,25 +9,41 @@ body{background:linear-gradient(160deg,#0a0a1e,#1a0a2e);overflow:hidden;height:1
 .back-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .hud-title{font-size:1rem;color:#fff}
 .hud-score{font-size:.9rem;color:#FFD700}
-#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0 12px}
-.combo-bar{font-size:1.2rem;color:#C77DFF;min-height:1.8rem;text-align:center}
-#lanes{flex:1;display:flex;gap:0;width:100%;max-width:340px;position:relative;overflow:hidden}
+
+#stage{position:fixed;top:52px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 0 8px}
+
+/* Song name banner */
+#song-banner{font-size:.95rem;color:#C77DFF;text-align:center;min-height:1.4rem;padding:0 8px;letter-spacing:.02em}
+
+.combo-bar{font-size:1.1rem;color:#FFD700;min-height:1.6rem;text-align:center}
+
+#lanes{flex:1;display:flex;gap:0;width:100%;max-width:380px;position:relative;overflow:hidden}
 .lane{flex:1;border-right:1px solid rgba(255,255,255,.08);position:relative;display:flex;flex-direction:column;align-items:center}
 .lane:last-child{border-right:none}
 .lane-bg{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(255,255,255,.03))}
-.hit-zone{position:absolute;bottom:0;left:4px;right:4px;height:60px;border-radius:14px 14px 0 0;opacity:.3}
-.tap-btn{position:absolute;bottom:0;left:4px;right:4px;height:60px;border-radius:14px 14px 0 0;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:1.6rem;border:2.5px solid rgba(255,255,255,.2);z-index:5;transition:background .1s}
-.tap-btn:active{filter:brightness(1.5)}
-.note{position:absolute;width:calc(100% - 10px);left:5px;border-radius:10px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:none}
-.hit-fx{position:absolute;bottom:30px;font-size:1.4rem;animation:hitFly .5s ease-out forwards;pointer-events:none}
-@keyframes hitFly{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-50px) scale(1.5);opacity:0}}
+.hit-zone{position:absolute;bottom:0;left:3px;right:3px;height:80px;border-radius:16px 16px 0 0;opacity:.3}
+/* Larger tap buttons — easier for kids */
+.tap-btn{position:absolute;bottom:0;left:3px;right:3px;height:80px;border-radius:16px 16px 0 0;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid rgba(255,255,255,.25);z-index:5;transition:background .1s}
+.tap-btn:active,.tap-btn.pressed{filter:brightness(1.6);transform:scaleY(.94)}
+.note{position:absolute;width:calc(100% - 8px);left:4px;border-radius:12px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:none}
+.hit-fx{position:absolute;bottom:50px;left:0;right:0;text-align:center;font-size:1.3rem;animation:hitFly .5s ease-out forwards;pointer-events:none}
+@keyframes hitFly{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-55px) scale(1.4);opacity:0}}
 .hud-life{font-size:.9rem}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,0,20,.92);backdrop-filter:blur(14px)}
-.ov-ico{font-size:4.5rem;animation:pulse 1s ease-in-out infinite alternate}
+
+/* Speed slider bar */
+#speed-bar{display:flex;align-items:center;gap:8px;width:100%;max-width:340px;padding:0 8px}
+#speed-bar label{font-size:.75rem;color:rgba(199,184,255,.7);white-space:nowrap}
+#speedSlider{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:rgba(199,125,255,.3);outline:none;cursor:pointer}
+#speedSlider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#C77DFF,#FF6B9D);cursor:pointer;box-shadow:0 2px 8px rgba(199,125,255,.5)}
+#speedSlider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#C77DFF,#FF6B9D);cursor:pointer;border:none}
+#speed-val{font-size:.75rem;color:#C77DFF;min-width:28px;text-align:right}
+
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,0,20,.92);backdrop-filter:blur(14px)}
+.ov-ico{font-size:4rem;animation:pulse 1s ease-in-out infinite alternate}
 @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
-.ov-title{font-size:2rem;color:#C77DFF;text-align:center}
-.ov-sub{font-size:.9rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:300px}
-.ov-score{font-size:1.2rem;color:#FFD700}
+.ov-title{font-size:1.9rem;color:#C77DFF;text-align:center}
+.ov-sub{font-size:.85rem;color:rgba(255,255,255,.7);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;max-width:300px;line-height:1.5}
+.ov-score{font-size:1.1rem;color:#FFD700}
 .play-btn{background:linear-gradient(135deg,#C77DFF,#FF6B9D);border:none;border-radius:22px;padding:13px 34px;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.4)}
 .play-btn:active{transform:scale(.94)}
 </style></head><body>
@@ -37,121 +53,331 @@ body{background:linear-gradient(160deg,#0a0a1e,#1a0a2e);overflow:hidden;height:1
   <div class="hud-score">⭐<span id="score">0</span> <span class="hud-life">❤️<span id="lives">5</span></span></div>
 </div>
 <div id="stage">
+  <div id="song-banner">🎵 —</div>
   <div class="combo-bar" id="comboBar"></div>
   <div id="lanes"></div>
+  <div id="speed-bar">
+    <label>🐢 Speed</label>
+    <input type="range" id="speedSlider" min="1" max="5" step="0.5" value="2.5">
+    <span id="speed-val">2.5</span>
+  </div>
 </div>
 <div id="overlay">
   <div class="ov-ico">🎵</div>
   <div class="ov-title">Beat Tap!</div>
-  <div class="ov-sub">Tap the lane when the note reaches the glowing zone at the bottom!<br>Miss 5 notes and it's over!</div>
+  <div class="ov-sub">Tap the lane when the note reaches the glowing zone at the bottom!<br>Miss 5 notes and it's over!<br><br>Use the slider to set your speed 🐢→🐇</div>
   <div class="ov-score" id="finalScore"></div>
   <button class="play-btn" onclick="startGame()">Let's Tap! 🎶</button>
 </div>
 <script>
+// ── AUDIO ENGINE ─────────────────────────────────────────────
+let actx = null;
+function getCtx() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+// C D E G — bright pentatonic, everything harmonises
+const LANE_FREQS = [261.63, 293.66, 329.63, 392.00];
+
+function playNote(freq, dur=0.35, vol=0.5, type='triangle') {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  const osc2= ctx.createOscillator(), gain2= ctx.createGain();
+  osc.connect(gain);  gain.connect(ctx.destination);
+  osc2.connect(gain2); gain2.connect(ctx.destination);
+  osc.type = type; osc.frequency.value = freq;
+  osc2.type = 'sine'; osc2.frequency.value = freq * 2;
+  gain.gain.setValueAtTime(vol, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  gain2.gain.setValueAtTime(vol * 0.2, ctx.currentTime);
+  gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur * 0.6);
+  osc.start(); osc.stop(ctx.currentTime + dur);
+  osc2.start(); osc2.stop(ctx.currentTime + dur * 0.6);
+}
+
+function playHitSound(lane, quality) {
+  const freq = LANE_FREQS[lane];
+  const vol = quality === 'PERFECT! 🌟' ? 0.6 : quality === 'GREAT! ✨' ? 0.5 : 0.4;
+  playNote(freq, 0.4, vol, 'triangle');
+  if (quality === 'PERFECT! 🌟') setTimeout(() => playNote(freq * 1.5, 0.2, 0.18, 'sine'), 60);
+}
+
+function playMissSound() {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sawtooth'; osc.frequency.value = 120;
+  osc.frequency.linearRampToValueAtTime(70, ctx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.2, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+  osc.start(); osc.stop(ctx.currentTime + 0.18);
+}
+
+function playComboSound(combo) {
+  if (combo % 5 !== 0) return;
+  [0,4,7,12].forEach((semi, i) => {
+    setTimeout(() => playNote(261.63 * Math.pow(2, semi/12), 0.2, 0.28, 'sine'), i * 65);
+  });
+}
+
+// ── BACKGROUND BEAT ──────────────────────────────────────────
+let beatInterval = null, beatPhase = 0;
+
+function startBeat(bpm=100) {
+  stopBeat();
+  beatPhase = 0;
+  const iv = (60 / bpm) * 500; // eighth-note ms
+  beatInterval = setInterval(() => {
+    if (!running) return;
+    const ctx = getCtx();
+    // Kick beat 1&3
+    if (beatPhase % 4 === 0 || beatPhase % 4 === 2) {
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.type='sine';
+      o.frequency.setValueAtTime(120,ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(40,ctx.currentTime+0.1);
+      g.gain.setValueAtTime(0.3,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.12);
+      o.start(); o.stop(ctx.currentTime+0.12);
+    }
+    // Hi-hat every eighth
+    { const bs=ctx.sampleRate*0.04, buf=ctx.createBuffer(1,bs,ctx.sampleRate);
+      const d=buf.getChannelData(0); for(let j=0;j<bs;j++) d[j]=Math.random()*2-1;
+      const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain();
+      s.buffer=buf; f.type='highpass'; f.frequency.value=6000;
+      s.connect(f); f.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(beatPhase%2===0?.07:.035,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.04);
+      s.start(); s.stop(ctx.currentTime+0.04); }
+    // Snare beat 2&4
+    if (beatPhase % 4 === 1 || beatPhase % 4 === 3) {
+      const bs=ctx.sampleRate*0.08, buf=ctx.createBuffer(1,bs,ctx.sampleRate);
+      const d=buf.getChannelData(0); for(let j=0;j<bs;j++) d[j]=Math.random()*2-1;
+      const s=ctx.createBufferSource(), g=ctx.createGain();
+      s.buffer=buf; s.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.1,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.08);
+      s.start(); s.stop(ctx.currentTime+0.08); }
+    beatPhase++;
+  }, iv);
+}
+
+function stopBeat() { if (beatInterval) { clearInterval(beatInterval); beatInterval=null; } }
+
+// ── SONGS ────────────────────────────────────────────────────
+// Lanes: 0=C  1=D  2=E  3=G
+// Each entry in pattern is an array of lane indices that fire together
+const SONGS = [
+  { name:'🌟 Twinkle Twinkle',
+    pattern:[[0],[0],[3],[3],[3],[3],[2],[1],[1],[2],[2],[1],[1],[0],
+             [3],[3],[1],[1],[2],[2],[1],[3],[3],[1],[1],[2],[2],[1],
+             [0],[0],[3],[3],[3],[3],[2],[1],[1],[2],[2],[1],[1],[0]] },
+
+  { name:'🐑 Mary Had a Little Lamb',
+    pattern:[[2],[1],[0],[1],[2],[2],[2],[1],[1],[1],[2],[3],[3],
+             [2],[1],[0],[1],[2],[2],[2],[1],[1],[2],[1],[0]] },
+
+  { name:'🥐 Hot Cross Buns',
+    pattern:[[2],[1],[0],[2],[1],[0],
+             [0],[0],[0],[0],[1],[1],[1],[1],[2],[1],[0]] },
+
+  { name:'🌉 London Bridge',
+    pattern:[[3],[3],[3],[2],[2],[2],[3],[1],[2],[2],[2],[2],[3],
+             [3],[3],[3],[2],[2],[2],[3],[1],[3],[2],[0]] },
+
+  { name:'🎂 Happy Birthday',
+    // G G A G C B  G G A G D C  G G G E C B A  F F E C D C
+    // lanes: C=0 D=1 E=2 G=3 A≈3 B≈2 F≈1
+    pattern:[[3],[3],[3],[3],[0],[2],[3],[3],[3],[3],[1],[0],
+             [3],[3],[3],[2],[0],[2],[1],[1],[1],[2],[0],[1],[0]] },
+
+  { name:'🦆 Old MacDonald',
+    // E E E B D D B  A A G G E  B B B B E E E E B D D B A G E
+    // lanes: E=2 B≈3 D=1 A≈3 G=3
+    pattern:[[2],[2],[2],[3],[1],[1],[3],[3],[3],[3],[3],[2],
+             [3],[3],[3],[3],[2],[2],[2],[2],[3],[1],[1],[3],[3],[3],[2]] },
+
+  { name:'🐻 Baa Baa Black Sheep',
+    // G G D D E E E D  C C B B A A G  D D C C B B A  D D C C B B A
+    // G G D D E E E D  C C B B A A G
+    pattern:[[3],[3],[1],[1],[2],[2],[2],[1],[0],[0],[3],[3],[3],[3],[3],
+             [1],[1],[0],[0],[3],[3],[3],[1],[1],[0],[0],[3],[3],[3],
+             [3],[3],[1],[1],[2],[2],[2],[1],[0],[0],[3],[3],[3],[3],[3]] },
+
+  { name:'🎠 Row Row Row Your Boat',
+    // C C C D E  E D E F G  C C C G G G E E E C C C  G F E D C
+    pattern:[[0],[0],[0],[1],[2],[2],[1],[2],[1],[3],
+             [0],[0],[0],[3],[3],[3],[2],[2],[2],[0],[0],[0],
+             [3],[1],[2],[1],[0]] },
+
+  { name:'🌈 If You\'re Happy',
+    // E E E C E G  G  E A A A A G G E G E D C
+    // simplified to our 4 lanes
+    pattern:[[2],[2],[2],[0],[2],[3],[3],[2],[3],[3],[3],[3],[3],[3],
+             [2],[3],[2],[1],[0],[2],[2],[2],[0],[2],[3],[3],[2]] },
+
+  { name:'🚂 Wheels on the Bus',
+    // G G G E G A  A G A A A G  E G G G E G A  A G E C
+    pattern:[[3],[3],[3],[2],[3],[3],[3],[3],[3],[3],[3],[3],[3],[2],
+             [3],[3],[3],[3],[2],[3],[3],[3],[3],[2],[0]] },
+
+  { name:'🌻 You Are My Sunshine',
+    // C E G G G E G E C  D E G A G  E G G G E G E D C
+    pattern:[[0],[2],[3],[3],[3],[2],[3],[2],[0],
+             [1],[2],[3],[3],[3],[2],[3],[3],[3],[2],[3],[2],[1],[0]] },
+
+  { name:'🐸 Five Little Monkeys',
+    // G E G E G E C D E  E D C D E G
+    pattern:[[3],[2],[3],[2],[3],[2],[0],[1],[2],[2],[1],[0],[1],[2],[3],
+             [3],[2],[3],[2],[3],[2],[0],[1],[2],[2],[1],[0]] },
+];
+
+// ── GAME VARS ─────────────────────────────────────────────────
 const LANE_COLORS=['#FF6B9D','#C77DFF','#00E5FF','#69FF47'];
 const LANE_EMOJIS=['🎵','🎶','🎸','🥁'];
 const NOTE_EMOJIS=['⭐','💜','💙','💚'];
-let lanes=[],notes=[],score=0,combo=0,lives=5,raf,running=false,frame=0,speed=2.5;
+let lanes=[],notes=[],score=0,combo=0,lives=5,raf,running=false,frame=0;
 let laneH=0,hitY=0;
+let currentSong=0, songPatternIdx=0, nextBeat=60;
+let baseSpeed=2.5; // set by slider
+
+// Slider wiring
+const slider = document.getElementById('speedSlider');
+const speedVal = document.getElementById('speed-val');
+slider.addEventListener('input', () => {
+  baseSpeed = parseFloat(slider.value);
+  speedVal.textContent = baseSpeed.toFixed(1);
+});
 
 function buildLanes(){
-  const el=document.getElementById('lanes');el.innerHTML='';
-  const stageH=el.offsetHeight;laneH=stageH;hitY=stageH-60;
+  const el=document.getElementById('lanes'); el.innerHTML='';
+  const stageH=el.offsetHeight; laneH=stageH; hitY=stageH-80;
   lanes=[];
   for(let i=0;i<4;i++){
-    const l=document.createElement('div');l.className='lane';
-    const bg=document.createElement('div');bg.className='lane-bg';l.appendChild(bg);
-    const hz=document.createElement('div');hz.className='hit-zone';hz.style.background=LANE_COLORS[i]+'44';l.appendChild(hz);
-    const btn=document.createElement('div');btn.className='tap-btn';
-    btn.style.background=LANE_COLORS[i]+'33';btn.textContent=LANE_EMOJIS[i];
+    const l=document.createElement('div'); l.className='lane';
+    const bg=document.createElement('div'); bg.className='lane-bg'; l.appendChild(bg);
+    const hz=document.createElement('div'); hz.className='hit-zone';
+    hz.style.background=LANE_COLORS[i]+'44'; l.appendChild(hz);
+    const btn=document.createElement('div'); btn.className='tap-btn';
+    btn.style.background=LANE_COLORS[i]+'33'; btn.textContent=LANE_EMOJIS[i];
     btn.addEventListener('pointerdown',e=>{e.preventDefault();tapLane(i);});
     l.appendChild(btn);
-    el.appendChild(l);lanes.push({el:l});
+    el.appendChild(l); lanes.push({el:l});
   }
+}
+
+function showSongName(){
+  document.getElementById('song-banner').textContent = SONGS[currentSong].name;
 }
 
 function spawnNote(lane){
-  const el=document.createElement('div');el.className='note';
+  const el=document.createElement('div'); el.className='note';
   el.style.background=`linear-gradient(135deg,${LANE_COLORS[lane]},${LANE_COLORS[(lane+1)%4]})`;
-  el.style.top='-44px';el.textContent=NOTE_EMOJIS[lane];
+  el.style.top='-48px'; el.textContent=NOTE_EMOJIS[lane];
   lanes[lane].el.appendChild(el);
-  notes.push({el,lane,y:-44,speed});
+  // Speed = baseSpeed + small score bonus, but slider is master
+  const spd = baseSpeed + score * 0.004;
+  notes.push({el, lane, y:-48, speed: spd});
 }
 
 function tapLane(i){
-  if(!running)return;
-  // Find closest note in this lane in hit window
-  const window=55;
-  let best=null,bestDist=Infinity;
+  if(!running) return;
+  getCtx();
+  const winPx=65; // slightly larger hit window for kids
+  let best=null, bestDist=Infinity;
   notes.forEach(n=>{
     if(n.lane===i){
       const dist=Math.abs(n.y-hitY);
-      if(dist<window&&dist<bestDist){best=n;bestDist=dist;}
+      if(dist<winPx&&dist<bestDist){best=n;bestDist=dist;}
     }
   });
+
+  // Visual press feedback
+  const btn=lanes[i].el.querySelector('.tap-btn');
+  btn.classList.add('pressed');
+  setTimeout(()=>btn.classList.remove('pressed'),120);
+
   if(best){
-    // Hit!
-    const quality=bestDist<15?'PERFECT! 🌟':bestDist<30?'GREAT! ✨':'GOOD! 👍';
-    const pts=bestDist<15?3:bestDist<30?2:1;
-    score+=pts*(1+Math.floor(combo/5));combo++;
+    const quality=bestDist<18?'PERFECT! 🌟':bestDist<35?'GREAT! ✨':'GOOD! 👍';
+    const pts=bestDist<18?3:bestDist<35?2:1;
+    score+=pts*(1+Math.floor(combo/5)); combo++;
+    playHitSound(i, quality);
+    playComboSound(combo);
     document.getElementById('score').textContent=score;
     document.getElementById('comboBar').textContent=combo>=5?`${combo}x COMBO! 🔥`:'';
-    // Remove note
-    best.el.remove();notes.splice(notes.indexOf(best),1);
-    // Hit fx
-    const fx=document.createElement('div');fx.className='hit-fx';fx.textContent=quality;
-    fx.style.left='50%';lanes[i].el.appendChild(fx);setTimeout(()=>fx.remove(),500);
-    if(navigator.vibrate)navigator.vibrate(12);
+    best.el.remove(); notes.splice(notes.indexOf(best),1);
+    const fx=document.createElement('div'); fx.className='hit-fx'; fx.textContent=quality;
+    lanes[i].el.appendChild(fx); setTimeout(()=>fx.remove(),500);
+    if(navigator.vibrate) navigator.vibrate(12);
   } else {
-    // Flash lane
-    lanes[i].el.querySelector('.tap-btn').style.background=LANE_COLORS[i]+'66';
-    setTimeout(()=>lanes[i].el.querySelector('.tap-btn').style.background=LANE_COLORS[i]+'33',150);
+    // Idle tap — play a soft note anyway so it's musical
+    playNote(LANE_FREQS[i], 0.15, 0.14, 'triangle');
+    btn.style.background=LANE_COLORS[i]+'77';
+    setTimeout(()=>btn.style.background=LANE_COLORS[i]+'33',150);
   }
-  lanes[i].el.querySelector('.tap-btn').style.filter='brightness(1.6)';
-  setTimeout(()=>lanes[i].el.querySelector('.tap-btn').style.filter='',100);
 }
-
-// Simple beat pattern
-const PATTERN=[[0],[2],[1,3],[0],[2],[1],[0,3],[2],[1],[0],[3],[1,2]];
-let patternIdx=0,nextBeat=60;
 
 function startGame(){
   document.getElementById('overlay').style.display='none';
-  buildLanes();notes=[];score=0;combo=0;lives=5;frame=0;speed=2.5;patternIdx=0;nextBeat=60;
-  document.getElementById('score').textContent=0;document.getElementById('lives').textContent=5;
+  baseSpeed = parseFloat(slider.value);
+  buildLanes();
+  notes=[];score=0;combo=0;lives=5;frame=0;
+  songPatternIdx=0;
+  currentSong=Math.floor(Math.random()*SONGS.length);
+  nextBeat=60;
+  document.getElementById('score').textContent=0;
+  document.getElementById('lives').textContent=5;
   document.getElementById('comboBar').textContent='';
-  running=true;loop();
+  showSongName();
+  running=true;
+  startBeat();
+  loop();
 }
 
 function loop(){
-  if(!running)return;
-  raf=requestAnimationFrame(loop);frame++;
-  speed=2.5+score*.008;
-  // Spawn notes from pattern
+  if(!running) return;
+  raf=requestAnimationFrame(loop); frame++;
+
+  // Spawn from current song pattern
   if(frame>=nextBeat){
-    const beat=PATTERN[patternIdx%PATTERN.length];
+    const song=SONGS[currentSong];
+    const beat=song.pattern[songPatternIdx % song.pattern.length];
     beat.forEach(l=>spawnNote(l));
-    patternIdx++;
-    nextBeat=frame+Math.max(28,48-Math.floor(score/15));
+    songPatternIdx++;
+    // Loop song then advance to next
+    if(songPatternIdx > 0 && songPatternIdx % song.pattern.length === 0){
+      currentSong=(currentSong+1)%SONGS.length;
+      songPatternIdx=0;
+      showSongName();
+    }
+    // Gap between notes: shrinks gently with score but never below 26 frames
+    nextBeat=frame+Math.max(26, 46-Math.floor(score/20));
   }
+
   // Move notes
   for(let i=notes.length-1;i>=0;i--){
-    const n=notes[i];n.y+=n.speed;n.el.style.top=n.y+'px';
-    // Missed
+    const n=notes[i];
+    n.y += baseSpeed + score * 0.004;
+    n.el.style.top=n.y+'px';
     if(n.y>laneH){
-      n.el.remove();notes.splice(i,1);
-      lives--;combo=0;document.getElementById('lives').textContent=lives;
+      n.el.remove(); notes.splice(i,1);
+      lives--; combo=0;
+      document.getElementById('lives').textContent=lives;
       document.getElementById('comboBar').textContent='';
-      if(navigator.vibrate)navigator.vibrate([30,20,30]);
+      playMissSound();
+      if(navigator.vibrate) navigator.vibrate([30,20,30]);
       if(lives<=0){endGame();return;}
     }
   }
 }
 
 function endGame(){
-  running=false;cancelAnimationFrame(raf);
-  const ov=document.getElementById('overlay');ov.style.display='flex';
-  ov.querySelector('.ov-title').textContent=score>=100?'Rhythm Star! 🌟':score>=40?'Nice Beat! 🎵':'Keep Practicing! 💪';
+  running=false; stopBeat(); cancelAnimationFrame(raf);
+  const ov=document.getElementById('overlay'); ov.style.display='flex';
+  ov.querySelector('.ov-title').textContent=
+    score>=150?'Rhythm Star! 🌟':score>=60?'Nice Beat! 🎵':'Keep Practicing! 💪';
   document.getElementById('finalScore').textContent=`Score: ${score}`;
 }
 </script></body></html>
