@@ -177,9 +177,9 @@ const CW = canvas.width, CH = canvas.height;
 
 // ── DIFFICULTY ────────────────────────────────────────────────
 const DIFF = {
-  1: { barrelSpd:1.6, spawnRate:220, barrelCount:3  },
-  2: { barrelSpd:2.5, spawnRate:160, barrelCount:5  },
-  3: { barrelSpd:3.8, spawnRate:110, barrelCount:7  },
+  1: { barrelSpd:1.0, spawnBase:2000, spawnJitter:1500, maxBarrels:3 },
+  2: { barrelSpd:1.5, spawnBase:1400, spawnJitter:1100, maxBarrels:5 },
+  3: { barrelSpd:2.2, spawnBase:900,  spawnJitter:800,  maxBarrels:7 },
 };
 let diff = 1;
 function setDiff(d){diff=d;[1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('active',i===d));}
@@ -235,8 +235,8 @@ function makePlatforms(lvl) {
     plat(CH*0.56, r2open, lad1),
     // Row 3: open same as row 1
     plat(CH*0.39, r3open, lad2),
-    // Row 4: gorilla row — centered, narrower, no ladder (barrels spawn here)
-    { y:CH*0.22, x1:CW*0.05, x2:CW*0.95, tilt:0, ladderX:null, dropSide:'right' },
+    // Row 4: gorilla row — same open side as row 3 so barrel drops into gap
+    plat(CH*0.22, r3open, null),
     // Row 5: goal — narrow top
     { y:CH*0.10, x1:CW*0.3,  x2:CW*0.7,  tilt:0, ladderX:null, dropSide:'right' },
   ];
@@ -260,18 +260,26 @@ function resetHero() {
 }
 
 // ── BARRELS ───────────────────────────────────────────────────
-let barrels = [], barrelTimer = 0;
+let barrels = [], barrelTimer = 0, nextSpawnDelay = 2500;
 
 function spawnBarrel() {
   const cfg = DIFF[diff];
-  if (barrels.length >= cfg.barrelCount) return;
+  // Always schedule the next spawn first — cap check must NOT skip this
+  const jitterScale = Math.max(0.3, 1 - (level-1) * 0.06);
+  nextSpawnDelay = cfg.spawnBase + Math.random() * cfg.spawnJitter * jitterScale;
+
+  const maxBarrels = Math.min(cfg.maxBarrels + Math.floor((level-1)/3), 12);
+  if (barrels.length >= maxBarrels) return;  // cap hit — next spawn still scheduled
+
+  const lvlMult = Math.min(1 + (level-1) * 0.10, 3.0);
+  const randMult = 0.75 + Math.random() * 0.5;
+  const spd = cfg.barrelSpd * lvlMult * randMult;
   barrels.push({
-    x: CW * 0.48,          // gorilla throws from near top
+    x: CW * 0.48,
     y: platforms[4].y - CW*0.04,
-    vx: (Math.random() > 0.5 ? 1 : -1) * cfg.barrelSpd * (0.8 + Math.random()*0.4),
+    vx: (Math.random() > 0.5 ? 1 : -1) * spd,
     vy: 0,
     r: CW * 0.028,
-    platIdx: 4,
     rolling: true,
   });
 }
@@ -299,7 +307,7 @@ function startGame() {
   highScore = parseInt(localStorage.getItem('barrelHS')||'0');
   score=0; lives=3; level=1;
   platforms = makePlatforms(1);
-  resetHero(); barrels=[]; barrelTimer=0; spawnCoins();
+  resetHero(); barrels=[]; barrelTimer=0; nextSpawnDelay=2500; spawnCoins();
   updateHUD();
   gameRunning=true; gamePaused=false;
   document.getElementById('pb').textContent='⏸ PAUSE';
@@ -343,10 +351,9 @@ function update(dt, ts){
   if(hero.invincible>0) hero.invincible-=dt;
 
   // Barrel spawn
-  barrelTimer+=dt;
+  barrelTimer += dt;
   const cfg=DIFF[diff];
-  const spawnInterval = Math.max(cfg.spawnRate - (level-1)*20, 80);
-  if(barrelTimer>=spawnInterval){barrelTimer=0;spawnBarrel();}
+  if(barrelTimer >= nextSpawnDelay){ barrelTimer=0; spawnBarrel(); }
 
   // ── Hero input ──────────────────────────────────────────────
   const movingLeft  = keys['ArrowLeft']  || keys['a'];
@@ -461,7 +468,7 @@ function update(dt, ts){
     score+=200*level; level++;
     sfxWin();
     for(let i=0;i<6;i++) setTimeout(()=>spawnPtcl(['🎉','⭐','👑'][Math.floor(Math.random()*3)],CW/2,CH/2),i*100);
-    platforms=makePlatforms(level); resetHero(); barrels=[]; barrelTimer=0; spawnCoins();
+    platforms=makePlatforms(level); resetHero(); barrels=[]; barrelTimer=0; nextSpawnDelay=2500; spawnCoins();
     updateHUD();
   }
 
