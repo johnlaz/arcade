@@ -62,11 +62,8 @@ function startLevel(lv){
   for(let c=0;c<numColors;c++)for(let b=0;b<TUBE_CAP;b++)pool.push(c);
   pool.sort(()=>Math.random()-.5);
   tubes=[];
-  for(let t=0;t<numTubes;t++){
-    tubes.push(t<numColors*TUBE_CAP/TUBE_CAP?pool.splice(0,TUBE_CAP).filter((_,i)=>i<TUBE_CAP):[]);
-    if(t>=numColors)tubes[t]=[];
-  }
-  // Ensure solvable - just shuffle filled tubes
+  for(let t=0;t<numColors;t++) tubes.push(pool.splice(0,TUBE_CAP));
+  tubes.push([],[]);
   render();
 }
 
@@ -106,7 +103,7 @@ function tapTube(i){
   } else {
     // Pour: move top ball if destination isn't full and top colors match (or dest empty)
     const src=tubes[selected],dst=tubes[i];
-    if(dst.length>=TUBE_CAP){document.getElementById('msg').textContent="That tube is full!");selected=null;render();return;}
+    if(dst.length>=TUBE_CAP){document.getElementById('msg').textContent='That tube is full!';selected=null;render();return;}
     const topSrc=src[src.length-1];
     const topDst=dst.length>0?dst[dst.length-1]:null;
     if(topDst!==null&&topDst!==topSrc){document.getElementById('msg').textContent="Colors don't match! 🎨";selected=null;render();return;}
