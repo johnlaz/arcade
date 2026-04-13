@@ -5,113 +5,252 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{overflow:hidden;height:100dvh;width:100vw;user-select:none}
-#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(180,100,255,.25);backdrop-filter:blur(10px);z-index:10}
-.back-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
-.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 14px;background:rgba(180,100,255,.25);
+  backdrop-filter:blur(10px);z-index:10;gap:8px}
+.back-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;
+  width:40px;height:40px;color:#fff;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0}
+.hud-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#fff;flex:1;text-align:center}
+.hud-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hud-lives{font-size:1rem}
 .hud-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700}
-#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block;cursor:pointer}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(60,0,100,.88);backdrop-filter:blur(14px)}
+#canvas{position:fixed;top:52px;left:0;width:100%;height:calc(100dvh - 52px);display:block;cursor:pointer;touch-action:none}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  background:rgba(60,0,100,.88);backdrop-filter:blur(14px)}
 .ov-ico{font-size:5rem;animation:prance 1.2s ease-in-out infinite alternate}
-@keyframes prance{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-12px) rotate(5deg)}}
+/* flip the overlay icon too so it faces right in the menu */
+@keyframes prance{from{transform:translateY(0) scaleX(-1) rotate(-5deg)}to{transform:translateY(-12px) scaleX(-1) rotate(5deg)}}
 .ov-title{font-family:'Fredoka One',cursive;font-size:2rem;color:#FFD700;text-align:center}
-.ov-sub{font-size:.9rem;color:rgba(255,255,255,.75);text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
-.ov-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#FF6B9D}
-.play-btn{background:linear-gradient(135deg,#FF6B9D,#C77DFF);border:none;border-radius:22px;padding:13px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.5)}
+.ov-sub{font-size:.9rem;color:rgba(255,255,255,.8);text-align:center;font-family:'Nunito',sans-serif;font-weight:700;line-height:1.55}
+.ov-score{font-family:'Fredoka One',cursive;font-size:1.2rem;color:#FF6B9D}
+.diff-row{display:flex;gap:8px}
+.diff-btn{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);
+  border-radius:14px;padding:8px 16px;font-family:'Fredoka One',cursive;font-size:.9rem;
+  color:#fff;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.diff-btn.active{background:linear-gradient(135deg,#FF6B9D,#C77DFF);border-color:transparent;color:#fff}
+.play-btn{background:linear-gradient(135deg,#FF6B9D,#C77DFF);border:none;border-radius:22px;
+  padding:13px 38px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff;
+  cursor:pointer;touch-action:manipulation;box-shadow:0 5px 18px rgba(199,125,255,.5)}
 .play-btn:active{transform:scale(.94)}
 </style></head><body>
 <div id="hud">
   <a href="index.html" class="back-btn">🏠</a>
   <div class="hud-title">🦄 Unicorn Run!</div>
-  <div class="hud-score">⭐ <span id="score">0</span></div>
+  <div class="hud-right">
+    <span class="hud-lives" id="livesDisplay">❤️❤️❤️</span>
+    <span class="hud-score">⭐ <span id="score">0</span></span>
+  </div>
 </div>
 <canvas id="canvas"></canvas>
 <div id="overlay">
   <div class="ov-ico">🦄</div>
-  <div class="ov-title">Unicorn Run!</div>
-  <div class="ov-sub">Tap to jump over dark clouds!<br>Collect stars for points! ⭐</div>
+  <div class="ov-title" id="ovTitle">Unicorn Run!</div>
+  <div class="ov-sub">Tap to jump over dark clouds!<br>Collect ⭐ stars for points! You get 3 lives!</div>
   <div class="ov-score" id="finalScore"></div>
+  <div class="diff-row">
+    <button class="diff-btn active" id="d1" onclick="setDiff(1)">🌱 Easy</button>
+    <button class="diff-btn" id="d2" onclick="setDiff(2)">🔥 Medium</button>
+    <button class="diff-btn" id="d3" onclick="setDiff(3)">⚡ Hard</button>
+  </div>
   <button class="play-btn" onclick="startGame()">Gallop! 🌈</button>
 </div>
 <script>
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-let W,H,GY,uni,obstacles=[],stars=[],rainbows=[],score=0,speed=4,raf,running=false,frame=0,hiScore=+localStorage.getItem('uni_hi')||0;
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
 
-function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;GY=H*.78;}
-window.addEventListener('resize',resize);
-
-const U={x:0,y:0,vy:0,w:0,h:0,onGround:true,jumpCount:0};
-
-function startGame(){
-  document.getElementById('overlay').style.display='none';resize();
-  U.w=H*.1;U.h=H*.1;U.x=W*.12;U.y=GY-U.h;U.vy=0;U.onGround=true;U.jumpCount=0;
-  obstacles=[];stars=[];rainbows=[];score=0;speed=4;frame=0;
-  document.getElementById('score').textContent=0;
-  running=true;loop();
+// ── DIFFICULTY ──────────────────────────────────────────────────
+const DIFF = {
+  1: { baseSpeed: 3,   grow: 0.018, minGap: 95,  maxGap: 170 },
+  2: { baseSpeed: 4.5, grow: 0.03,  minGap: 65,  maxGap: 120 },
+  3: { baseSpeed: 6,   grow: 0.05,  minGap: 45,  maxGap: 90  },
+};
+let diff = 1;
+function setDiff(d) {
+  diff = d;
+  [1,2,3].forEach(i => document.getElementById('d'+i).classList.toggle('active', i===d));
 }
 
-function jump(){
-  if(!running){startGame();return;}
-  if(U.onGround||U.jumpCount<2){U.vy=H*-.021;U.onGround=false;U.jumpCount++;if(navigator.vibrate)navigator.vibrate(8);}
+// ── STATE ────────────────────────────────────────────────────────
+let W, H, GY;
+let obstacles = [], stars = [], sparkles = [];
+let score = 0, hiScore = +localStorage.getItem('uni_hi')||0;
+let speed, frame, running = false, raf;
+let lives, invincible = 0;
+
+const U = { x:0, y:0, vy:0, w:0, h:0, onGround:true };
+
+function resize() {
+  W = canvas.width  = canvas.offsetWidth;
+  H = canvas.height = canvas.offsetHeight;
+  GY = H * 0.78;
+}
+window.addEventListener('resize', () => { resize(); if (!running) drawStatic(); });
+
+// ── START ────────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('overlay').style.display = 'none';
+  resize();
+  U.w = H*0.10; U.h = H*0.10;
+  U.x = W*0.12; U.y = GY - U.h;
+  U.vy = 0; U.onGround = true;
+  obstacles = []; stars = []; sparkles = [];
+  score = 0; speed = DIFF[diff].baseSpeed; frame = 0;
+  lives = 3; invincible = 0;
+  updateHUD();
+  running = true;
+  if (raf) cancelAnimationFrame(raf);
+  loop();
 }
 
-function loop(){
-  if(!running)return;
-  raf=requestAnimationFrame(loop);
-  ctx.clearRect(0,0,W,H);frame++;
-  speed=4+score*.025;
+function jump() {
+  if (!running) { startGame(); return; }
+  // Double-jump allowed on easy, single on harder
+  const maxJumps = diff === 1 ? 2 : 1;
+  if (!U.onGround && U.jumpCount >= maxJumps) return;
+  U.vy = H * -0.021;
+  U.onGround = false;
+  U.jumpCount = (U.jumpCount||0) + 1;
+  if (navigator.vibrate) navigator.vibrate(8);
+}
 
-  // Sky gradient - shifts colors over time
-  const hue=(frame*.2)%360;
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,`hsl(${hue},80%,70%)`);g.addColorStop(1,`hsl(${(hue+60)%360},70%,85%)`);
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+// ── LOOP ─────────────────────────────────────────────────────────
+function loop() {
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  frame++;
 
-  // Rainbow ground trail
-  const rg=ctx.createLinearGradient(0,GY,0,H);
-  rg.addColorStop(0,'#C77DFF');rg.addColorStop(1,'#FF6B9D');
-  ctx.fillStyle=rg;ctx.fillRect(0,GY,W,H-GY);
-  // Rainbow stripe
-  const stripes=['#FF0000','#FF7F00','#FFFF00','#00FF00','#0000FF','#8B00FF'];
-  stripes.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(0,GY+i*4,W,4);});
+  const cfg = DIFF[diff];
+  speed = cfg.baseSpeed + score * cfg.grow;
 
-  // Stars bg deco
-  if(frame%60===0)stars.push({x:W+30,y:H*(.05+Math.random()*.6),speed:speed*.4,size:H*.03});
-  for(let i=stars.length-1;i>=0;i--){
-    const s=stars[i];s.x-=s.speed;
-    ctx.font=`${s.size*2.2}px serif`;ctx.textAlign='center';ctx.fillText('⭐',s.x,s.y);
-    const dx=s.x-U.x,dy=s.y-U.y;
-    if(dx*dx+dy*dy<(s.size+U.w*.4)*(s.size+U.w*.4)*4){stars.splice(i,1);score++;document.getElementById('score').textContent=score;continue;}
-    if(s.x<-40)stars.splice(i,1);
+  ctx.clearRect(0, 0, W, H);
+
+  // Sky — slowly shifting hue
+  const hue = (frame * 0.15) % 360;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, `hsl(${hue},75%,68%)`);
+  g.addColorStop(1, `hsl(${(hue+55)%360},65%,82%)`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // Rainbow ground
+  const rg = ctx.createLinearGradient(0, GY, 0, H);
+  rg.addColorStop(0, '#C77DFF'); rg.addColorStop(1, '#FF6B9D');
+  ctx.fillStyle = rg; ctx.fillRect(0, GY, W, H - GY);
+  ['#FF000099','#FF7F0099','#FFFF0099','#00FF0099','#0000FF99','#8B00FF99'].forEach((c,i) => {
+    ctx.fillStyle = c; ctx.fillRect(0, GY + i*4, W, 4);
+  });
+
+  // Sparkle trail behind unicorn
+  if (frame % 3 === 0) {
+    sparkles.push({ x: U.x, y: U.y + U.h*0.5 + (Math.random()-0.5)*U.h*0.4,
+      life: 30, vx: -1.5-Math.random(), vy: (Math.random()-0.5)*1.5,
+      emoji: ['✨','⭐','💜','🌸'][Math.floor(Math.random()*4)] });
+  }
+  for (let i = sparkles.length-1; i >= 0; i--) {
+    const s = sparkles[i];
+    s.x += s.vx; s.y += s.vy; s.life--;
+    ctx.globalAlpha = s.life / 30;
+    ctx.font = `${H*0.025}px serif`; ctx.textAlign = 'center';
+    ctx.fillText(s.emoji, s.x, s.y);
+    if (s.life <= 0) sparkles.splice(i, 1);
+  }
+  ctx.globalAlpha = 1;
+
+  // Stars (collectibles)
+  if (frame % 55 === 0) stars.push({ x: W+30, y: GY - U.h*(1.2+Math.random()*1.4), r: H*0.028 });
+  for (let i = stars.length-1; i >= 0; i--) {
+    const s = stars[i]; s.x -= speed * 0.7;
+    ctx.font = `${s.r*2.4}px serif`; ctx.textAlign = 'center';
+    ctx.fillText('⭐', s.x, s.y + s.r);
+    if (Math.abs(s.x - (U.x+U.w/2)) < s.r + U.w*0.4 &&
+        Math.abs((s.y+s.r) - (U.y+U.h/2)) < s.r + U.h*0.4) {
+      stars.splice(i, 1); score += 5; updateHUD(); continue;
+    }
+    if (s.x < -50) stars.splice(i, 1);
   }
 
   // Unicorn physics
-  U.vy+=H*.0013;U.y+=U.vy;
-  if(U.y>=GY-U.h){U.y=GY-U.h;U.vy=0;U.onGround=true;U.jumpCount=0;}
-  // Sparkle trail
-  if(frame%3===0){const s=document.createElement('div');}
-  ctx.font=`${U.h*1.3}px serif`;ctx.textAlign='center';ctx.fillText('🦄',U.x+U.w/2,U.y+U.h);
-
-  // Clouds (obstacles)
-  if(frame%Math.max(38,85-score)===0)obstacles.push({x:W+60,y:GY-H*(.12+Math.random()*.18),w:H*.07,h:H*.06,speed:speed});
-  for(let i=obstacles.length-1;i>=0;i--){
-    const o=obstacles[i];o.x-=o.speed;
-    ctx.font=`${o.h*2.2}px serif`;ctx.textAlign='center';ctx.fillText('🌩️',o.x+o.w/2,o.y+o.h);
-    if(o.x<U.x+U.w*.6 && o.x+o.w*.6>U.x && o.y<U.y+U.h*.8 && o.y+o.h>.8>U.y){endGame();return;}
-    if(o.x<-80)obstacles.splice(i,1);
+  U.vy += H * 0.0013;
+  U.y  += U.vy;
+  if (U.y >= GY - U.h) {
+    U.y = GY - U.h; U.vy = 0; U.onGround = true; U.jumpCount = 0;
   }
-  if(frame%6===0){score++;document.getElementById('score').textContent=score;}
+
+  // Draw unicorn — ctx.scale(-1,1) to face RIGHT
+  ctx.save();
+  ctx.translate(U.x + U.w/2, U.y + U.h);
+  ctx.scale(-1, 1);   // ← mirror so unicorn faces right
+  if (invincible === 0 || Math.floor(invincible/5) % 2 === 0) {
+    ctx.font = `${U.h * 1.3}px serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🦄', 0, 0);
+  }
+  ctx.restore();
+  if (invincible > 0) invincible--;
+
+  // Obstacles (clouds)
+  if (frame % Math.max(cfg.minGap, cfg.maxGap - Math.floor(score/3)) === 0) spawnObstacle();
+  for (let i = obstacles.length-1; i >= 0; i--) {
+    const o = obstacles[i]; o.x -= o.speed;
+    ctx.font = `${o.h*2.3}px serif`; ctx.textAlign = 'center';
+    ctx.fillText('🌩️', o.x + o.w/2, o.y + o.h);
+
+    if (invincible === 0 &&
+        o.x < U.x + U.w*0.65 && o.x + o.w*0.65 > U.x &&
+        o.y < U.y + U.h*0.8  && o.y + o.h > U.y + U.h*0.15) {
+      obstacles.splice(i, 1);
+      loseLife(); continue;
+    }
+    if (o.x < -100) obstacles.splice(i, 1);
+  }
+
+  // Score ticker
+  if (frame % 7 === 0) { score++; updateHUD(); }
 }
 
-function endGame(){
-  running=false;cancelAnimationFrame(raf);
-  if(score>hiScore){hiScore=score;localStorage.setItem('uni_hi',score);}
-  const ov=document.getElementById('overlay');ov.style.display='flex';
-  ov.querySelector('.ov-title').textContent=score>=150?'Rainbow Queen! 👑':score>=60?'Magic Runner! ✨':'Try Again! 🦄';
-  document.getElementById('finalScore').textContent=`Score: ${score} | Best: ${hiScore}`;
+function spawnObstacle() {
+  obstacles.push({
+    x: W + 60,
+    y: GY - H * (0.10 + Math.random() * 0.16),
+    w: H * 0.07, h: H * 0.065,
+    speed: speed * (0.88 + Math.random() * 0.35),
+  });
 }
 
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();jump();});
-document.addEventListener('keydown',e=>{if(e.code==='Space')jump();});
-resize();
+function loseLife() {
+  lives--;
+  invincible = 90;
+  updateHUD();
+  if (lives <= 0) {
+    running = false;
+    cancelAnimationFrame(raf);
+    if (score > hiScore) { hiScore = score; localStorage.setItem('uni_hi', hiScore); }
+    setTimeout(showGameOver, 300);
+  }
+}
+
+function showGameOver() {
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  document.getElementById('ovTitle').textContent =
+    score >= 200 ? 'Rainbow Queen! 👑' : score >= 80 ? 'Magic Runner! ✨' : 'Try Again! 🦄';
+  document.getElementById('finalScore').textContent = `Score: ${score} | Best: ${hiScore}`;
+}
+
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0, lives));
+}
+
+function drawStatic() {
+  resize(); ctx.clearRect(0, 0, W, H);
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#b388ff'); g.addColorStop(1,'#f8bbd0');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+}
+
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); jump(); } });
+resize(); drawStatic();
 </script></body></html>

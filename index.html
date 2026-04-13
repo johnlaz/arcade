@@ -27,14 +27,12 @@ body {
   color: #fff;
   min-height: 100vh;
   overflow-x: hidden;
-  /* Story Magic starfield */
   background-image:
     radial-gradient(ellipse at 15% 15%, rgba(199,125,255,.2) 0%, transparent 50%),
     radial-gradient(ellipse at 85% 85%, rgba(0,229,255,.15) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(255,107,157,.08) 0%, transparent 70%);
 }
 
-/* ── FLOATING STARS BG ── */
 body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -55,7 +53,6 @@ body::before {
     radial-gradient(1px   1px   at 93% 74%, rgba(255,255,255,.4) 0%, transparent 100%);
 }
 
-/* ── HEADER ── */
 header {
   position: relative; z-index: 10;
   width: 100%; max-width: 560px; margin: 0 auto;
@@ -103,13 +100,9 @@ h1 {
   color: #fff; margin-top: 2px;
 }
 
-/* ── PAGE CONTENT ── */
 .page { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 4px 12px 32px; }
 
-/* ── SECTION HEADER ── */
-.section {
-  margin-bottom: 6px;
-}
+.section { margin-bottom: 6px; }
 .section-header {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 4px 6px;
@@ -124,19 +117,14 @@ h1 {
   flex: 1; height: 1px;
   background: linear-gradient(90deg, rgba(255,255,255,.15), transparent);
 }
-.section-count {
-  font-size: .65rem; color: rgba(255,255,255,.35);
-  font-family: var(--font-title);
-}
+.section-count { font-size: .65rem; color: rgba(255,255,255,.35); font-family: var(--font-title); }
 
-/* ── GRID ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
-/* ── GAME CARD ── */
 .card {
   background: var(--card);
   border: 1.5px solid var(--card-border);
@@ -150,19 +138,14 @@ h1 {
   transition: transform .14s, border-color .14s, box-shadow .14s;
   box-shadow: 0 4px 16px rgba(0,0,0,.3);
 }
-/* Shimmer top */
 .card::before {
   content: '';
   position: absolute; inset: 0;
   background: radial-gradient(circle at 50% 0%, rgba(255,255,255,.07), transparent 65%);
   pointer-events: none;
 }
-.card:active {
-  transform: scale(.94);
-  box-shadow: 0 2px 8px rgba(0,0,0,.4);
-}
+.card:active { transform: scale(.94); box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 
-/* Color accent per category */
 .card.action    { --accent: var(--orange); }
 .card.puzzle    { --accent: var(--cyan);   }
 .card.music     { --accent: var(--purple); }
@@ -172,7 +155,6 @@ h1 {
 
 .card:active { border-color: var(--accent, var(--gold)); box-shadow: 0 0 16px color-mix(in srgb, var(--accent, var(--gold)) 40%, transparent); }
 
-/* Emoji */
 .card-emoji {
   font-size: clamp(2.2rem, 8vw, 3rem);
   line-height: 1;
@@ -189,8 +171,7 @@ h1 {
 .card-name {
   font-family: var(--font-title);
   font-size: clamp(.85rem, 3vw, 1.05rem);
-  line-height: 1.2;
-  color: #fff;
+  line-height: 1.2; color: #fff;
 }
 .card-desc {
   font-size: clamp(.6rem, 1.8vw, .72rem);
@@ -198,7 +179,6 @@ h1 {
   line-height: 1.35;
 }
 
-/* Badge */
 .badge {
   position: absolute; top: 9px; right: 9px;
   font-size: .5rem; font-weight: 900;
@@ -210,7 +190,6 @@ h1 {
 .badge.classic { background: var(--orange); color: #fff; }
 .badge.hot     { background: var(--pink);   color: #fff; }
 
-/* ── STORY MAGIC DIVIDER ── */
 .magic-divider {
   text-align: center;
   padding: 16px 0 10px;
@@ -226,7 +205,6 @@ h1 {
   background: linear-gradient(90deg, transparent, rgba(199,184,255,.15), transparent);
 }
 
-/* ── FOOTER ── */
 footer {
   text-align: center; padding: 20px 0 32px;
   font-size: .65rem; color: rgba(255,255,255,.2);
@@ -243,7 +221,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
   <div class="header-sparkles">✨</div>
   <h1>Kids Arcade!</h1>
   <div class="subtitle">Tap a game and start playing!</div>
-  <div class="game-count">27 games to explore ✨</div>
+  <div class="game-count">31 games to explore ✨</div>
 </header>
 
 <div class="page">
@@ -343,7 +321,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
       <div class="section-icon">🏃</div>
       <div class="section-title">Action & Reflex</div>
       <div class="section-line"></div>
-      <div class="section-count">6 games</div>
+      <div class="section-count">10 games</div>
     </div>
     <div class="grid">
 
@@ -387,6 +365,34 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
         <div class="card-emoji">🦄</div>
         <div class="card-name">Unicorn Run!</div>
         <div class="card-desc">Jump rainbows, collect stars!</div>
+      </a>
+
+      <a class="card action" href="barrelbash.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🦍</div>
+        <div class="card-name">Barrel Bash!</div>
+        <div class="card-desc">Climb ladders & jump rolling barrels!</div>
+      </a>
+
+      <a class="card action" href="maze.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🌀</div>
+        <div class="card-name">Maze Runner!</div>
+        <div class="card-desc">Find the exit & collect stars!</div>
+      </a>
+
+      <a class="card action" href="kart-race.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🏎️</div>
+        <div class="card-name">Kart Racer!</div>
+        <div class="card-desc">Race 3 laps — bump, drift & win!</div>
+      </a>
+
+      <a class="card action" href="icecream.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🍦</div>
+        <div class="card-name">Scoop Rush!</div>
+        <div class="card-desc">Serve ice cream before time runs out!</div>
       </a>
 
     </div>
@@ -540,7 +546,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
 
 <footer>
   <a href="https://johnlaz.github.io/cathyshood/">🏠 Back to Cathy's Neighborhood</a>
-  &nbsp;·&nbsp; 27 games &nbsp;·&nbsp; ✨ More coming soon!
+  &nbsp;·&nbsp; 31 games &nbsp;·&nbsp; ✨ More coming soon!
 </footer>
 
 </body>

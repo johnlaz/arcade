@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍦 Scoop Rush!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#1a0a2e;--panel:rgba(255,255,255,.07);--pb:rgba(255,255,255,.15);
+    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF;--orange:#FF9500}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  body{background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
+    background-image:radial-gradient(ellipse at 20% 20%,rgba(255,107,157,.18) 0%,transparent 50%),
+      radial-gradient(ellipse at 80% 80%,rgba(255,215,0,.1) 0%,transparent 50%)}
+  header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px 6px;z-index:10}
+  .back{background:var(--panel);border:2px solid var(--pb);color:#C8B8FF;border-radius:50%;
+    width:44px;height:44px;font-size:20px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+  .title{font-family:'Fredoka One',cursive;font-size:24px;
+    background:linear-gradient(135deg,var(--pink),var(--gold));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hud{width:100%;max-width:480px;display:flex;gap:8px;padding:0 16px 8px;z-index:10}
+  .pill{flex:1;background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:6px 8px;text-align:center}
+  .pill .lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#C8B8FF;margin-bottom:2px}
+  .pill .val{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold)}
+  #lv{color:var(--cyan)}#combo-val{color:var(--pink)}
+  .wrap{width:100%;max-width:480px;padding:0 16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10}
+  /* The main game area: canvas on right, drag rail on left */
+  .game-area{display:flex;width:100%;gap:8px;align-items:stretch}
+  /* Drag rail — finger slides here to move the waiter */
+  #drag-rail{width:64px;border-radius:18px;border:3px solid var(--pink);
+    background:rgba(255,107,157,.08);
+    box-shadow:0 0 20px rgba(255,107,157,.25);
+    position:relative;touch-action:none;cursor:ns-resize;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center}
+  #rail-thumb{width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--purple));
+    box-shadow:0 0 16px rgba(255,107,157,.6);
+    position:absolute;font-size:28px;
+    display:flex;align-items:center;justify-content:center;
+    transition:top .05s;pointer-events:none}
+  #rail-hint{font-size:11px;color:rgba(255,107,157,.5);font-weight:900;
+    writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:2px;
+    text-transform:uppercase;position:absolute}
+  #gc{border-radius:18px;border:3px solid var(--pink);
+    box-shadow:0 0 30px rgba(255,107,157,.35),0 0 70px rgba(255,107,157,.1);
+    display:block;touch-action:none;flex:1;min-width:0}
+  .brow{display:flex;gap:12px;width:100%;justify-content:center}
+  .abtn{flex:1;max-width:180px;height:56px;border:none;border-radius:18px;
+    font-family:'Fredoka One',cursive;font-size:17px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 0 rgba(0,0,0,.4);user-select:none;transition:transform .1s,box-shadow .1s}
+  .abtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  #pb{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff}
+  #overlay{position:fixed;inset:0;background:rgba(10,5,20,.9);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+  #overlay.hidden{display:none}
+  .ocard{background:linear-gradient(135deg,#2d1b4e,#1a0a2e);border:3px solid var(--pink);
+    border-radius:28px;padding:28px 32px;text-align:center;
+    box-shadow:0 0 60px rgba(255,107,157,.35);max-width:340px;width:90%}
+  .oem{font-size:56px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
+  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+  .otitle{font-family:'Fredoka One',cursive;font-size:30px;
+    background:linear-gradient(135deg,var(--pink),var(--gold));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+  .osub{font-size:13px;color:#C8B8FF;margin-bottom:12px;line-height:1.55}
+  .oscr{font-family:'Fredoka One',cursive;font-size:22px;color:var(--gold);margin-bottom:16px}
+  .diff-row{display:flex;gap:8px;margin-bottom:14px}
+  .diff-btn{flex:1;padding:8px 4px;border:2px solid rgba(255,255,255,.2);border-radius:12px;
+    font-family:'Fredoka One',cursive;font-size:13px;cursor:pointer;
+    background:rgba(255,255,255,.08);color:#fff;transition:all .15s}
+  .diff-btn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent}
+  .opbtn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:21px;
+    padding:13px 38px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%}
+  .opbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .particle{position:fixed;pointer-events:none;font-size:22px;z-index:200;animation:fup .9s ease-out forwards}
+  @keyframes fup{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-100px) scale(.3)}}
+  .sp{height:16px}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="back">🏠</a>
+  <div class="title">🍦 Scoop Rush!</div>
+  <div style="width:44px"></div>
+</header>
+<div class="hud">
+  <div class="pill"><div class="lbl">⭐ Score</div><div class="val" id="sc">0</div></div>
+  <div class="pill"><div class="lbl">🏆 Best</div><div class="val" id="hi">0</div></div>
+  <div class="pill"><div class="lbl">💥 Combo</div><div class="val" id="combo-val">x1</div></div>
+  <div class="pill"><div class="lbl">🚀 Level</div><div class="val" id="lv">1</div></div>
+</div>
+<div class="wrap">
+  <div class="game-area">
+    <div id="drag-rail">
+      <div id="rail-hint">SLIDE</div>
+      <div id="rail-thumb">🧑‍🍳</div>
+    </div>
+    <canvas id="gc"></canvas>
+  </div>
+  <div class="brow">
+    <button class="abtn" id="pb" onclick="togglePause()">⏸ PAUSE</button>
+  </div>
+  <div class="sp"></div>
+</div>
+<div id="overlay">
+  <div class="ocard">
+    <span class="oem" id="oem">🍦</span>
+    <div class="otitle" id="otitle">Scoop Rush!</div>
+    <div class="osub">Slide your finger on the left rail to move the waiter 🧑‍🍳 up and down the counter! Serve each customer their ice cream order before the timer runs out! Combos = bonus points!</div>
+    <div class="oscr" id="oscr"></div>
+    <div class="diff-row">
+      <button class="diff-btn active" id="d1" onclick="setDiff(1)">🌱 Easy</button>
+      <button class="diff-btn" id="d2" onclick="setDiff(2)">🔥 Medium</button>
+      <button class="diff-btn" id="d3" onclick="setDiff(3)">⚡ Hard</button>
+    </div>
+    <button class="opbtn" onclick="startGame()">🍦 Open Shop!</button>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('gc');
+const ctx    = canvas.getContext('2d');
+const rail   = document.getElementById('drag-rail');
+const thumb  = document.getElementById('rail-thumb');
+
+// Canvas sizing
+const GAP = 8, RAIL_W = 64;
+const available = Math.min(window.innerWidth - 32, 448);
+const CANVAS_W  = available - RAIL_W - GAP - 16*2;  // account for padding
+canvas.width  = CANVAS_W;
+canvas.height = Math.round(CANVAS_W * 1.5);
+const CW = canvas.width, CH = canvas.height;
+
+// Rail sizing
+rail.style.height = CH + 'px';
+
+// ── DIFFICULTY ────────────────────────────────────────────────
+const DIFF = {
+  1: { maxCustomers:3, arrivalRate:5000, patience:9000,  speedMult:1.0 },
+  2: { maxCustomers:4, arrivalRate:3500, patience:6500,  speedMult:1.3 },
+  3: { maxCustomers:5, arrivalRate:2500, patience:4500,  speedMult:1.7 },
+};
+let diff = 1;
+function setDiff(d){ diff=d; [1,2,3].forEach(i=>document.getElementById('d'+i).classList.toggle('active',i===d)); }
+
+// ── FLAVORS ───────────────────────────────────────────────────
+const FLAVORS = ['🍦','🍧','🍨','🧁','🍡','🍭','🥧','🍮'];
+const FLAVORS_LABEL = ['Soft','Shaved','Scoop','Cupcake','Mochi','Lolly','Pie','Pudding'];
+
+// ── CUSTOMERS (slots along the right counter edge) ─────────────
+// Each customer has a fixed Y-position (seat), a desired flavor,
+// a patience timer that ticks down, and is "served" when the
+// waiter reaches their Y and the waiter "has" their order.
+const SEAT_COUNT = 6;
+const SEAT_PAD   = CH * 0.07;
+const SEAT_STEP  = (CH - SEAT_PAD*2) / (SEAT_COUNT - 1);
+
+let customers = [];   // {seatIdx, flavor, patience, maxPatience, served, animPop}
+let nextSeatTimer = 0;
+let waiterY = CH / 2;  // pixel position along the counter
+let waiterTarget = CH / 2;
+let score=0, highScore=0, level=1, combo=1, missedInRow=0;
+let gameRunning=false, gamePaused=false;
+let raf, lastTs=0;
+
+// ── RAIL DRAG ─────────────────────────────────────────────────
+function railY(clientY){
+  const rect = rail.getBoundingClientRect();
+  return Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+}
+
+rail.addEventListener('touchmove', e => {
+  e.preventDefault();
+  waiterTarget = railY(e.touches[0].clientY) * CH;
+  thumb.style.top = (railY(e.touches[0].clientY) * rail.clientHeight - 26) + 'px';
+  try{if(actx&&actx.state==='suspended')actx.resume();}catch(e2){}
+}, { passive:false });
+
+rail.addEventListener('touchstart', e => {
+  e.preventDefault();
+  waiterTarget = railY(e.touches[0].clientY) * CH;
+  thumb.style.top = (railY(e.touches[0].clientY) * rail.clientHeight - 26) + 'px';
+}, { passive:false });
+
+// Mouse fallback
+rail.addEventListener('mousemove', e => {
+  if(e.buttons!==1) return;
+  waiterTarget = railY(e.clientY) * CH;
+  thumb.style.top = (railY(e.clientY) * rail.clientHeight - 26) + 'px';
+});
+
+// ── INIT ──────────────────────────────────────────────────────
+function startGame(){
+  document.getElementById('overlay').classList.add('hidden');
+  highScore = parseInt(localStorage.getItem('scoopHS')||'0');
+  score=0; level=1; combo=1; missedInRow=0;
+  customers=[]; nextSeatTimer=0;
+  waiterY=CH/2; waiterTarget=CH/2;
+  thumb.style.top=(rail.clientHeight/2-26)+'px';
+  updateHUD();
+  gameRunning=true; gamePaused=false;
+  document.getElementById('pb').textContent='⏸ PAUSE';
+  lastTs=performance.now();
+  if(raf) cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+
+function togglePause(){
+  if(!gameRunning)return;
+  gamePaused=!gamePaused;
+  document.getElementById('pb').textContent=gamePaused?'▶️ GO!':'⏸ PAUSE';
+  if(!gamePaused){lastTs=performance.now();raf=requestAnimationFrame(loop);}
+}
+
+// ── MAIN LOOP ──────────────────────────────────────────────────
+function loop(ts){
+  if(!gameRunning||gamePaused)return;
+  const dt=Math.min(ts-lastTs,50); lastTs=ts;
+  update(dt); draw();
+  raf=requestAnimationFrame(loop);
+}
+
+const WAITER_SPD = 6; // px per frame at 60fps
+
+function update(dt){
+  const sc=dt/16.67;
+  const cfg=DIFF[diff];
+
+  // Smooth waiter movement
+  const dist = waiterTarget - waiterY;
+  const step  = WAITER_SPD * sc * cfg.speedMult;
+  if(Math.abs(dist)<step) waiterY=waiterTarget;
+  else waiterY += Math.sign(dist)*step;
+  waiterY = Math.max(20, Math.min(CH-20, waiterY));
+
+  // Spawn customers
+  nextSeatTimer-=dt;
+  if(nextSeatTimer<=0 && customers.length < cfg.maxCustomers){
+    nextSeatTimer = cfg.arrivalRate * (0.7+Math.random()*0.6) / (1+level*0.1);
+    spawnCustomer(cfg);
+  }
+
+  // Tick patience & check service
+  const SERVE_RANGE = CH * 0.065;
+  let servedThisFrame = false;
+  for(let i=customers.length-1;i>=0;i--){
+    const c=customers[i];
+    if(c.served){ c.animPop-=dt; if(c.animPop<=0) customers.splice(i,1); continue; }
+
+    c.patience-=dt;
+    if(c.patience<=0){
+      // Customer walks out — lose combo
+      customers.splice(i,1);
+      combo=1; missedInRow++;
+      sfxMiss();
+      updateHUD();
+      if(missedInRow>=5){ gameOver(); return; }
+      continue;
+    }
+
+    // Check if waiter is close enough to serve
+    const seatY = seatIdxToY(c.seatIdx);
+    if(!servedThisFrame && Math.abs(waiterY - seatY) < SERVE_RANGE){
+      // Served!
+      c.served=true; c.animPop=600; servedThisFrame=true; missedInRow=0;
+      const pts = Math.round(100 * combo * (c.patience/c.maxPatience + 0.5));
+      score+=pts; combo=Math.min(combo+1,8);
+      sfxServe(); updateHUD();
+      spawnPtcl(c.flavor, seatY);
+      spawnPtcl('⭐', seatY);
+    }
+  }
+
+  // Level up every 500 pts
+  const newLevel = 1 + Math.floor(score/500);
+  if(newLevel>level){ level=newLevel; sfxLevelUp(); updateHUD(); }
+}
+
+function seatIdxToY(idx){ return SEAT_PAD + idx * SEAT_STEP; }
+
+function spawnCustomer(cfg){
+  // Find a free seat
+  const taken = customers.map(c=>c.seatIdx);
+  const free  = Array.from({length:SEAT_COUNT},(_,i)=>i).filter(i=>!taken.includes(i));
+  if(!free.length) return;
+  const seatIdx = free[Math.floor(Math.random()*free.length)];
+  const flavor  = FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
+  const patience = cfg.patience * (0.8+Math.random()*0.4);
+  customers.push({ seatIdx, flavor, patience, maxPatience:patience, served:false, animPop:0 });
+  sfxDing();
+}
+
+function gameOver(){
+  gameRunning=false;
+  if(score>highScore){highScore=score;localStorage.setItem('scoopHS',highScore);}
+  setTimeout(()=>{
+    document.getElementById('oem').textContent='😔';
+    document.getElementById('otitle').textContent= score>=1000?'🏆 Ice Cream Star!':score>=500?'⭐ Great Scooper!':'Too many missed!';
+    document.getElementById('osub').textContent='5 customers walked out! Try again!';
+    document.getElementById('oscr').textContent='⭐ '+score+' points!';
+    const b=document.querySelector('.opbtn');b.textContent='🔄 Reopen Shop!';b.onclick=startGame;
+    document.getElementById('overlay').classList.remove('hidden');
+  },400);
+}
+
+function updateHUD(){
+  document.getElementById('sc').textContent=score;
+  document.getElementById('hi').textContent=Math.max(score,highScore);
+  document.getElementById('combo-val').textContent='x'+combo;
+  document.getElementById('lv').textContent=level;
+}
+
+// ── DRAW ──────────────────────────────────────────────────────
+function draw(){
+  // Parlor background
+  const bg=ctx.createLinearGradient(0,0,0,CH);
+  bg.addColorStop(0,'#fff0f5'); bg.addColorStop(1,'#ffe4f0');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,CW,CH);
+
+  // Checkerboard floor hint
+  const sqSz=40;
+  for(let x=0;x<CW;x+=sqSz) for(let y=0;y<CH;y+=sqSz)
+    if((Math.floor(x/sqSz)+Math.floor(y/sqSz))%2===0){
+      ctx.fillStyle='rgba(255,107,157,.05)'; ctx.fillRect(x,y,sqSz,sqSz);
+    }
+
+  // Counter (bar) — left strip where waiter moves
+  const barW = CW*0.22;
+  const barGrad=ctx.createLinearGradient(0,0,barW,0);
+  barGrad.addColorStop(0,'#ff9ec4'); barGrad.addColorStop(1,'#ffcce0');
+  ctx.fillStyle=barGrad; ctx.fillRect(0,0,barW,CH);
+  // Counter edge highlight
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fillRect(barW-3,0,3,CH);
+  ctx.fillStyle='rgba(0,0,0,.08)'; ctx.fillRect(barW,0,4,CH);
+
+  // Seat positions — draw seats along right side
+  for(let i=0;i<SEAT_COUNT;i++){
+    const sy=seatIdxToY(i);
+    // Seat stool
+    ctx.fillStyle='rgba(199,125,255,.15)';
+    ctx.beginPath(); ctx.ellipse(CW*0.88,sy+12,CW*0.09,10,0,0,Math.PI*2); ctx.fill();
+    // Separator line
+    ctx.strokeStyle='rgba(255,107,157,.15)'; ctx.lineWidth=1; ctx.setLineDash([4,6]);
+    ctx.beginPath(); ctx.moveTo(barW+8,sy); ctx.lineTo(CW-4,sy); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Customers
+  customers.forEach(c=>{
+    const sy  = seatIdxToY(c.seatIdx);
+    const pop = c.served ? Math.min(1,(600-c.animPop)/200) : 0;
+    const scale = c.served ? 1+pop*0.4 : 1;
+    const alpha = c.served ? Math.max(0,c.animPop/600) : 1;
+
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.translate(CW*0.72, sy);
+    ctx.scale(scale,scale);
+
+    // Customer figure
+    ctx.font=`${CW*0.09}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    const chars=['👧','👦','👴','👵','🧑','🧒'];
+    ctx.fillText(chars[c.seatIdx%chars.length],0,0);
+
+    // Speech bubble with order
+    ctx.fillStyle='rgba(255,255,255,.92)';
+    ctx.shadowColor='rgba(255,107,157,.3)'; ctx.shadowBlur=8;
+    const bx=-CW*0.32, by=-CW*0.12, bw=CW*0.28, bh=CW*0.14;
+    roundRect(bx,by,bw,bh,8); ctx.fill();
+    ctx.shadowBlur=0;
+    // Bubble tail
+    ctx.fillStyle='rgba(255,255,255,.92)';
+    ctx.beginPath();ctx.moveTo(bx+bw*0.7,by+bh);
+    ctx.lineTo(bx+bw*0.8,by+bh+8);ctx.lineTo(bx+bw*0.85,by+bh);ctx.closePath();ctx.fill();
+
+    ctx.font=`${bw*0.38}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(c.flavor, bx+bw*0.35, by+bh*0.5);
+    // Patience bar
+    const pct=c.patience/c.maxPatience;
+    ctx.fillStyle=pct>0.5?'#69FF47':pct>0.25?'#FFD700':'#FF4444';
+    ctx.fillRect(bx+4,by+bh-5,Math.max(0,(bw-8)*pct),4);
+    ctx.fillStyle='rgba(0,0,0,.1)'; ctx.fillRect(bx+4+(bw-8)*pct,by+bh-5,(bw-8)*(1-pct),4);
+
+    ctx.restore();
+  });
+
+  // Waiter on counter bar
+  ctx.save();
+  ctx.shadowColor='#FF6B9D'; ctx.shadowBlur=14;
+  ctx.font=`${CW*0.11}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🧑‍🍳', barW/2, waiterY);
+  ctx.restore();
+
+  // Waiter holding current order (if close to a customer, show their order)
+  const SERVE_RANGE=CH*0.065;
+  const nearby=customers.find(c=>!c.served&&Math.abs(waiterY-seatIdxToY(c.seatIdx))<SERVE_RANGE);
+  if(nearby){
+    ctx.font=`${CW*0.07}px serif`; ctx.textAlign='center';
+    ctx.fillText(nearby.flavor, barW/2, waiterY - CW*0.09);
+  }
+
+  // Combo indicator
+  if(combo>1){
+    ctx.font=`bold ${CW*0.065}px "Fredoka One",cursive`;
+    ctx.fillStyle=combo>4?'#FF6B9D':'#FFD700';
+    ctx.shadowColor=ctx.fillStyle; ctx.shadowBlur=10;
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText('🔥 x'+combo+' COMBO!', CW/2, 4);
+    ctx.shadowBlur=0;
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  }
+
+  // Missed warning
+  if(missedInRow>0){
+    ctx.font=`${CW*0.04}px "Fredoka One",cursive`;
+    ctx.fillStyle='#FF4444'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText('💨 Walked out: '+missedInRow+'/5', CW/2, CH-4);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  }
+
+  if(gamePaused){
+    ctx.fillStyle='rgba(10,5,30,.72)'; ctx.fillRect(0,0,CW,CH);
+    ctx.font=`bold ${CW*.14}px "Fredoka One",cursive`;
+    ctx.fillStyle='#FFD700'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('⏸',CW/2,CH/2);
+  }
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ── AUDIO ─────────────────────────────────────────────────────
+let actx;
+function beep(f,d,t,v){
+  try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);o.type=t||'sine';o.frequency.value=f;
+    g.gain.setValueAtTime(v||.1,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);}catch(e){}
+}
+function sfxServe() { beep(660,.07,'square',.12);setTimeout(()=>beep(880,.07,'square',.1),80); }
+function sfxDing()  { beep(880,.08,'sine',.08); }
+function sfxMiss()  { [300,240,180].forEach((f,i)=>setTimeout(()=>beep(f,.08,'sawtooth',.1),i*60)); }
+function sfxLevelUp(){ [440,550,660,770,880].forEach((f,i)=>setTimeout(()=>beep(f,.1,'square',.1),i*70)); }
+
+function spawnPtcl(e, canvasY){
+  const el=document.createElement('div');el.className='particle';el.textContent=e;
+  const r=canvas.getBoundingClientRect();
+  el.style.left=(r.left+CW*0.72)+'px';
+  el.style.top=(r.top+canvasY)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),900);
+}
+draw();
+</script>
+</body>
+</html>

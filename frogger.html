@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#1a0a2e;--panel:rgba(255,255,255,.07);--pb:rgba(255,255,255,.15);
-    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF;--orange:#FF9500}
+    --gold:#FFD700;--pink:#FF6B9D;--cyan:#00E5FF;--green:#69FF47;--purple:#C77DFF}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   body{background:var(--bg);font-family:'Nunito',sans-serif;color:#fff;min-height:100vh;
     display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
@@ -16,8 +16,7 @@
   body::before{content:'';position:fixed;inset:0;pointer-events:none;
     background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 0%,transparent 100%),
       radial-gradient(1px 1px at 60% 10%,rgba(255,255,255,.4) 0%,transparent 100%),
-      radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.35) 0%,transparent 100%),
-      radial-gradient(1px 1px at 30% 80%,rgba(255,255,255,.4) 0%,transparent 100%)}
+      radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.35) 0%,transparent 100%)}
   header{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;
     padding:14px 20px 6px;z-index:10}
   .back{background:var(--panel);border:2px solid var(--pb);color:#C8B8FF;border-radius:50%;
@@ -29,7 +28,7 @@
   .pill{flex:1;background:var(--panel);border:2px solid var(--pb);border-radius:16px;padding:6px 8px;text-align:center}
   .pill .lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#C8B8FF;margin-bottom:2px}
   .pill .val{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold)}
-  #lv{color:var(--cyan)}#lv2{color:var(--pink)}
+  #lv{color:var(--cyan)}
   .wrap{width:100%;max-width:480px;padding:0 16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10}
   #gc{border-radius:18px;border:3px solid var(--purple);
     box-shadow:0 0 30px rgba(199,125,255,.4),0 0 70px rgba(199,125,255,.15);
@@ -53,7 +52,7 @@
   .brow{display:flex;gap:12px;width:100%;justify-content:center}
   .abtn{flex:1;max-width:180px;height:56px;border:none;border-radius:18px;
     font-family:'Fredoka One',cursive;font-size:17px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:7px;
+    display:flex;align-items:center;justify-content:center;
     box-shadow:0 6px 0 rgba(0,0,0,.4);user-select:none;transition:transform .1s,box-shadow .1s}
   .abtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
   #pb{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff}
@@ -61,19 +60,23 @@
     align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
   #overlay.hidden{display:none}
   .ocard{background:linear-gradient(135deg,#2d1b4e,#1a0a2e);border:3px solid var(--purple);
-    border-radius:28px;padding:30px 34px;text-align:center;
+    border-radius:28px;padding:28px 32px;text-align:center;
     box-shadow:0 0 60px rgba(199,125,255,.35);max-width:340px;width:90%}
-  .oem{font-size:60px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
-  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-12px)}}
-  .otitle{font-family:'Fredoka One',cursive;font-size:32px;
+  .oem{font-size:56px;margin-bottom:10px;display:block;animation:bop .8s ease infinite alternate}
+  @keyframes bop{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+  .otitle{font-family:'Fredoka One',cursive;font-size:30px;
     background:linear-gradient(135deg,var(--gold),var(--pink));
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-  .osub{font-size:14px;color:#C8B8FF;margin-bottom:14px;line-height:1.55}
-  .oscr{font-family:'Fredoka One',cursive;font-size:24px;color:var(--gold);margin-bottom:20px}
+  .osub{font-size:13px;color:#C8B8FF;margin-bottom:12px;line-height:1.55}
+  .oscr{font-family:'Fredoka One',cursive;font-size:22px;color:var(--gold);margin-bottom:16px}
+  .diff-row{display:flex;gap:8px;margin-bottom:14px}
+  .diff-btn{flex:1;padding:8px 4px;border:2px solid rgba(255,255,255,.2);border-radius:12px;
+    font-family:'Fredoka One',cursive;font-size:13px;cursor:pointer;
+    background:rgba(255,255,255,.08);color:#fff;transition:all .15s;touch-action:manipulation}
+  .diff-btn.active{background:linear-gradient(135deg,var(--pink),var(--purple));border-color:transparent}
   .opbtn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;
-    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:22px;
-    padding:14px 40px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%;
-    transition:transform .1s,box-shadow .1s}
+    border-radius:20px;color:#fff;font-family:'Fredoka One',cursive;font-size:21px;
+    padding:13px 38px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.4);width:100%}
   .opbtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.4)}
   .particle{position:fixed;pointer-events:none;font-size:24px;z-index:200;animation:fup 1s ease-out forwards}
   @keyframes fup{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-110px) scale(.3)}}
@@ -110,303 +113,403 @@
   <div class="ocard">
     <span class="oem" id="oem">🐸</span>
     <div class="otitle" id="otitle">Hoppy Dash!</div>
-    <div class="osub" id="osub">Hop across the road and river to reach the lily pads! Watch out for cars 🚗 and crocs 🐊!</div>
+    <div class="osub" id="osub">Hop across the road and river to reach the lily pads! Gaps between cars are <b>guaranteed</b> so crossing is always possible!</div>
     <div class="oscr" id="oscr"></div>
+    <div class="diff-row">
+      <button class="diff-btn active" id="d1" onclick="setDiff(1)">🌱 Easy</button>
+      <button class="diff-btn" id="d2" onclick="setDiff(2)">🔥 Medium</button>
+      <button class="diff-btn" id="d3" onclick="setDiff(3)">⚡ Hard</button>
+    </div>
     <button class="opbtn" id="obtn" onclick="startGame()">🎮 Let's Hop!</button>
   </div>
 </div>
 <script>
 const canvas = document.getElementById('gc');
-const ctx = canvas.getContext('2d');
+const ctx    = canvas.getContext('2d');
+
+// ── EMOJI BLIT HELPER (fixes iOS/WebKit transparency) ────────────
+// Direct ctx.fillText on a canvas with dark/transparent pixels causes
+// emoji glyphs to composite incorrectly on WebKit. Fix: render each
+// emoji to a small offscreen canvas, then blit with drawImage().
+// The main canvas always has opaque row backgrounds before we get here,
+// so drawImage composites cleanly with no coloured-box artefacts.
+const _oc  = document.createElement('canvas');
+const _oct = _oc.getContext('2d');
+
+function blitEmoji(emoji, fontSize, cx, cy) {
+  // cx, cy = centre position on main canvas
+  const pad = 10;
+  const sz  = Math.ceil(fontSize) + pad * 2;
+  if (_oc.width  !== sz) _oc.width  = sz;
+  if (_oc.height !== sz) _oc.height = sz;
+  _oct.clearRect(0, 0, sz, sz);
+  _oct.font         = `${fontSize}px serif`;
+  _oct.textAlign    = 'center';
+  _oct.textBaseline = 'middle';
+  _oct.fillText(emoji, sz / 2, sz / 2);
+  ctx.drawImage(_oc, cx - sz / 2, cy - sz / 2);
+}
+
+
+// Grid dimensions
 const COLS = 11, ROWS = 13;
-const SZ = Math.floor(Math.min(window.innerWidth-32, 448));
-const CELL = Math.floor(SZ / COLS);
-canvas.width = COLS*CELL; canvas.height = ROWS*CELL;
-const CW=canvas.width, CH=canvas.height;
+const SZ   = Math.floor(Math.min(window.innerWidth - 32, 448));
+const CELL  = Math.floor(SZ / COLS);
+canvas.width  = COLS * CELL;
+canvas.height = ROWS * CELL;
+const CW = canvas.width, CH = canvas.height;
 
-// Row types: 'safe'|'road'|'water'|'goal'
-// Row 0=top(goal), rows 1-3=water, row 4=safe, rows 5-9=road, row 10=safe, rows 11-12=start/safe
+// ── DIFFICULTY ────────────────────────────────────────────────────
+// carSpeed  : base pixels/frame for cars (in tile units per frame)
+// logSpeed  : base pixels/frame for logs
+// minCarGap : minimum gap in tiles between cars — KEY FIX
+// maxCars   : max cars per lane
+const DIFF = {
+  1: { carSpeed:0.018, logSpeed:0.012, minCarGap:3.5, maxCars:2 },
+  2: { carSpeed:0.030, logSpeed:0.020, minCarGap:2.8, maxCars:3 },
+  3: { carSpeed:0.048, logSpeed:0.030, minCarGap:2.0, maxCars:4 },
+};
+let diff = 1;
+function setDiff(d) {
+  diff = d;
+  [1,2,3].forEach(i => document.getElementById('d'+i).classList.toggle('active', i===d));
+}
+
+// ── ROW LAYOUT ────────────────────────────────────────────────────
+// Row 0 = goal (top), rows 1-3 = water, row 4 = safe,
+// rows 5-9 = road, row 10 = safe, rows 11-12 = start
 const ROW_TYPES = [
-  'goal','water','water','water','safe','road','road','road','road','road','safe','safe','safe'
+  'goal','water','water','water','safe',
+  'road','road','road','road','road',
+  'safe','safe','safe'
 ];
-// Road rows: cars move, water rows: logs move
-// Each lane: {speed, dir, objs:[{x,w,emoji}]}
+const GOAL_SLOTS = [1, 3, 5, 7, 9];
+
 let lanes = [];
-let frog, score, highScore, lives, level, safeY;
-let gameRunning=false, gamePaused=false;
-let raf, lastTs=0;
-let hopAnim={active:false,fromX:0,fromY:0,toX:0,toY:0,t:0};
-
-const GOAL_SLOTS = [1,3,5,7,9]; // col positions of lily pads
+let frog, score, highScore, lives, level;
 let goalsFilled = [];
+let gameRunning = false, gamePaused = false;
+let raf, lastTs = 0;
+let hopAnim = { active:false };
+let invincible = 0;
 
+// ── BUILD LANES ───────────────────────────────────────────────────
+// The critical fix: cars are placed with ENFORCED gaps so the frog
+// can always find a safe window to cross. We place cars one by one
+// and ensure at least minCarGap empty tiles between each car.
 function buildLanes(lvl) {
   lanes = [];
-  const spd = 0.04 + (lvl-1)*0.012;
+  const cfg  = DIFF[diff];
+  // Level bonus: small speed increase per level, never exceeds hard limit
+  const lvlBonus = Math.min((lvl - 1) * 0.004, 0.02);
+  const carSpd   = cfg.carSpeed + lvlBonus;
+  const logSpd   = cfg.logSpeed + lvlBonus * 0.5;
+
   ROW_TYPES.forEach((type, row) => {
-    if (type==='road') {
-      const dir = row%2===0 ? 1 : -1;
+    const dir = row % 2 === 0 ? 1 : -1;
+
+    if (type === 'road') {
+      const objs = buildVehicleLane(cfg.maxCars, cfg.minCarGap, dir, carSpd);
+      lanes[row] = { type:'road', dir, speed: carSpd * (0.8 + Math.random()*0.4), objs };
+
+    } else if (type === 'water') {
+      // Logs: place 2-3 logs with guaranteed gaps between them
       const objs = [];
-      const cars = ['🚗','🚙','🚕','🚌','🏎️'];
-      let x = Math.random()*COLS;
-      for (let i=0;i<3+lvl;i++) {
-        const w = 1.5 + Math.random()*0.8;
-        objs.push({x: (x%COLS+COLS)%COLS, w, emoji: cars[Math.floor(Math.random()*cars.length)]});
-        x += w + 1.2 + Math.random()*1.5;
+      let x = Math.random() * COLS;
+      const numLogs = 2 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < numLogs; i++) {
+        const w = 2.2 + Math.random() * 1.2;
+        objs.push({ x: ((x % COLS) + COLS) % COLS, w });
+        x += w + 1.8 + Math.random() * 1.5;  // gap between logs
       }
-      lanes[row] = {type:'road', dir, speed: spd*(0.6+Math.random()*0.8), objs};
-    } else if (type==='water') {
-      const dir = row%2===0 ? 1 : -1;
-      const objs = [];
-      let x = Math.random()*COLS;
-      for (let i=0;i<3;i++) {
-        const w = 2+Math.random()*1.5;
-        objs.push({x:(x%COLS+COLS)%COLS, w, emoji:'🪵'});
-        x += w + 1.5 + Math.random();
-      }
-      lanes[row] = {type:'water', dir, speed: spd*(0.4+Math.random()*0.4), objs};
+      lanes[row] = { type:'water', dir, speed: logSpd * (0.7 + Math.random()*0.5), objs };
+
     } else {
-      lanes[row] = {type};
+      lanes[row] = { type };
     }
   });
 }
 
+// Place cars with enforced minimum gap so the frog can ALWAYS cross
+function buildVehicleLane(maxCars, minGap, dir, baseSpd) {
+  const cars   = ['🚗','🚙','🚕','🚌','🏎️'];
+  const objs   = [];
+  const count  = 2 + Math.floor(Math.random() * (maxCars - 1));
+  // Total track length is COLS tiles. Spread cars around it.
+  // Each car width ~1 tile. Guaranteed gap = minGap tiles.
+  // Max cars that fit: floor(COLS / (1 + minGap))
+  const maxFit = Math.floor(COLS / (1 + minGap));
+  const n      = Math.min(count, maxFit);
+
+  let x = Math.random() * 2;  // random start offset
+  for (let i = 0; i < n; i++) {
+    const carW = 1.0 + Math.random() * 0.4;
+    objs.push({
+      x: ((x % COLS) + COLS) % COLS,
+      w: carW,
+      emoji: cars[Math.floor(Math.random() * cars.length)],
+    });
+    // Advance by car width PLUS guaranteed minimum gap
+    x += carW + minGap + Math.random() * 1.5;
+  }
+  return objs;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
 function resetFrog() {
-  frog = {col: Math.floor(COLS/2), row: ROWS-1};
-  hopAnim = {active:false};
+  frog = { col: Math.floor(COLS / 2), row: ROWS - 1 };
+  hopAnim = { active: false };
 }
 
 function startGame() {
   document.getElementById('overlay').classList.add('hidden');
-  highScore = parseInt(localStorage.getItem('frogHS')||'0');
-  score=0; lives=3; level=1; goalsFilled=[];
+  highScore = parseInt(localStorage.getItem('frogHS') || '0');
+  score = 0; lives = 3; level = 1; goalsFilled = [];
   buildLanes(level); resetFrog(); updateHUD();
-  gameRunning=true; gamePaused=false;
-  document.getElementById('pb').textContent='⏸ PAUSE';
-  lastTs=performance.now();
-  if(raf) cancelAnimationFrame(raf);
-  raf=requestAnimationFrame(loop);
+  gameRunning = true; gamePaused = false; invincible = 0;
+  document.getElementById('pb').textContent = '⏸ PAUSE';
+  lastTs = performance.now();
+  if (raf) cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(loop);
 }
 
-function togglePause(){
-  if(!gameRunning)return;
-  gamePaused=!gamePaused;
-  document.getElementById('pb').textContent=gamePaused?'▶️ GO!':'⏸ PAUSE';
-  if(!gamePaused){lastTs=performance.now();raf=requestAnimationFrame(loop);}
+function togglePause() {
+  if (!gameRunning) return;
+  gamePaused = !gamePaused;
+  document.getElementById('pb').textContent = gamePaused ? '▶️ GO!' : '⏸ PAUSE';
+  if (!gamePaused) { lastTs = performance.now(); raf = requestAnimationFrame(loop); }
 }
 
-function loop(ts){
-  if(!gameRunning||gamePaused)return;
-  const dt=Math.min(ts-lastTs,50);
-  lastTs=ts;
+// ── LOOP ─────────────────────────────────────────────────────────
+function loop(ts) {
+  if (!gameRunning || gamePaused) return;
+  const dt    = Math.min(ts - lastTs, 50);
+  lastTs = ts;
   update(dt);
   draw();
-  raf=requestAnimationFrame(loop);
+  raf = requestAnimationFrame(loop);
 }
 
-function update(dt){
-  const scale=dt/16.67;
+function update(dt) {
+  const scale = dt / 16.67;
+  if (invincible > 0) invincible -= dt;
+
   // Move lanes
-  lanes.forEach((lane,row)=>{
-    if(!lane||!lane.objs)return;
-    lane.objs.forEach(o=>{
-      o.x=(o.x+lane.dir*lane.speed*scale%COLS+COLS)%COLS;
+  lanes.forEach((lane) => {
+    if (!lane || !lane.objs) return;
+    lane.objs.forEach(o => {
+      o.x = ((o.x + lane.dir * lane.speed * scale) % COLS + COLS) % COLS;
     });
   });
 
   // Animate hop
-  if(hopAnim.active){
-    hopAnim.t=Math.min(1,hopAnim.t+dt/120);
-    if(hopAnim.t>=1){
-      hopAnim.active=false;
+  if (hopAnim.active) {
+    hopAnim.t = Math.min(1, hopAnim.t + dt / 110);
+    if (hopAnim.t >= 1) {
+      hopAnim.active = false;
       checkRow();
     }
   } else {
-    // Ride log if on water row
-    const lane=lanes[frog.row];
-    if(lane&&lane.type==='water'){
-      const log=onLog();
-      if(log){
-        frog.col+=lane.dir*lane.speed*scale;
-        frog.col=((frog.col%COLS)+COLS)%COLS;
+    // Ride log when on water
+    const lane = lanes[frog.row];
+    if (lane && lane.type === 'water') {
+      const log = onLog();
+      if (log) {
+        frog.col = ((frog.col + lane.dir * lane.speed * scale) % COLS + COLS) % COLS;
       }
     }
   }
 }
 
-function checkRow(){
-  const lane=lanes[frog.row];
-  if(!lane){loseLife();return;}
-  if(lane.type==='road'){
-    if(hitCar()){sfxSplat();loseLife();return;}
+// ── ROW CHECK ─────────────────────────────────────────────────────
+function checkRow() {
+  if (invincible > 0) return;
+  const lane = lanes[frog.row];
+  if (!lane) { loseLife(); return; }
+
+  if (lane.type === 'road' && hitCar()) { sfxSplat(); loseLife(); return; }
+
+  if (lane.type === 'water') {
+    if (!onLog()) { sfxSplat(); loseLife(); return; }
   }
-  if(lane.type==='water'){
-    if(!onLog()){sfxSplat();loseLife();return;}
-  }
-  if(frog.row===0){
-    // Goal row — must land on a lily pad slot
-    const slot=GOAL_SLOTS.find(s=>Math.abs(frog.col-s)<0.8);
-    if(slot!==undefined&&!goalsFilled.includes(slot)){
+
+  if (frog.row === 0) {
+    // Must land on a lily pad
+    const slot = GOAL_SLOTS.find(s => Math.abs(frog.col - s) < 0.8);
+    if (slot !== undefined && !goalsFilled.includes(slot)) {
       goalsFilled.push(slot);
-      score+=100*level;
+      score += 100 * level;
       sfxWin();
-      spawn('🎉',frog.col*CELL+CELL/2,frog.row*CELL+CELL/2);
+      spawn('🎉', frog.col * CELL + CELL/2, frog.row * CELL + CELL/2);
       updateHUD();
       resetFrog();
-      if(goalsFilled.length>=GOAL_SLOTS.length){
-        // Level complete
-        setTimeout(()=>{level++;goalsFilled=[];buildLanes(level);resetFrog();updateHUD();},600);
+      if (goalsFilled.length >= GOAL_SLOTS.length) {
+        setTimeout(() => { level++; goalsFilled = []; buildLanes(level); resetFrog(); updateHUD(); }, 600);
       }
     } else {
       sfxSplat(); loseLife();
     }
     return;
   }
-  if(lane.type==='road'&&hitCar()){sfxSplat();loseLife();}
+  // Re-check road after arriving (frog could land mid-car)
+  if (lane.type === 'road' && hitCar()) { sfxSplat(); loseLife(); }
 }
 
-function hitCar(){
-  const lane=lanes[frog.row];
-  if(!lane||!lane.objs)return false;
-  return lane.objs.some(o=>{
-    const left=o.x, right=(o.x+o.w)%COLS;
-    const fc=((frog.col%COLS)+COLS)%COLS;
-    if(left<right) return fc>left-0.4&&fc<right-0.1;
-    return fc>left-0.4||fc<right-0.1;
+// ── COLLISION HELPERS ─────────────────────────────────────────────
+function hitCar() {
+  const lane = lanes[frog.row];
+  if (!lane || !lane.objs) return false;
+  const fc = ((frog.col % COLS) + COLS) % COLS;
+  return lane.objs.some(o => {
+    const l = o.x, r = (o.x + o.w) % COLS;
+    if (l < r) return fc > l - 0.3 && fc < r - 0.1;
+    return fc > l - 0.3 || fc < r - 0.1;  // wraps around
   });
 }
 
-function onLog(){
-  const lane=lanes[frog.row];
-  if(!lane||!lane.objs)return null;
-  return lane.objs.find(o=>{
-    const fc=((frog.col%COLS)+COLS)%COLS;
-    const left=o.x, right=(o.x+o.w)%COLS;
-    if(left<right) return fc>=left-0.1&&fc<=right+0.1;
-    return fc>=left-0.1||fc<=right+0.1;
+function onLog() {
+  const lane = lanes[frog.row];
+  if (!lane || !lane.objs) return null;
+  const fc = ((frog.col % COLS) + COLS) % COLS;
+  return lane.objs.find(o => {
+    const l = o.x, r = (o.x + o.w) % COLS;
+    if (l < r) return fc >= l - 0.1 && fc <= r + 0.1;
+    return fc >= l - 0.1 || fc <= r + 0.1;
   });
 }
 
-function hop(dc,dr){
-  if(!gameRunning||gamePaused||hopAnim.active)return;
-  const nc=frog.col+dc, nr=frog.row+dr;
-  if(nc<0||nc>=COLS||nr<0||nr>=ROWS)return;
-  hopAnim={active:true,fromX:frog.col,fromY:frog.row,toX:nc,toY:nr,t:0};
-  frog.col=nc; frog.row=nr;
+// ── HOP ───────────────────────────────────────────────────────────
+function hop(dc, dr) {
+  if (!gameRunning || gamePaused || hopAnim.active) return;
+  const nc = frog.col + dc, nr = frog.row + dr;
+  if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) return;
+  hopAnim = { active:true, fromX:frog.col, fromY:frog.row, toX:nc, toY:nr, t:0 };
+  frog.col = nc; frog.row = nr;
   sfxHop();
-  if(dr<0) score+=5; updateHUD();
-  try{if(actx&&actx.state==='suspended')actx.resume()}catch(e){}
+  if (dr < 0) { score += 5; updateHUD(); }
+  try { if (actx && actx.state === 'suspended') actx.resume(); } catch(e) {}
 }
 
-function loseLife(){
-  lives--;updateHUD();
-  if(lives<=0){
-    gameRunning=false;
-    if(score>highScore){highScore=score;localStorage.setItem('frogHS',highScore);}
-    setTimeout(()=>showOverlay('😵','Splat!','So close! Try again!','⭐ '+score+' points!','🔄 Play Again!',startGame),400);
+// ── LOSE LIFE ─────────────────────────────────────────────────────
+function loseLife() {
+  lives--;
+  invincible = 1200; // ms
+  updateHUD();
+  if (lives <= 0) {
+    gameRunning = false;
+    if (score > highScore) { highScore = score; localStorage.setItem('frogHS', highScore); }
+    setTimeout(() => showOverlay('😵','Splat!','So close! Try again!','⭐ '+score+' points!','🔄 Play Again!',startGame), 400);
     return;
   }
   resetFrog();
 }
 
-function updateHUD(){
-  document.getElementById('sc').textContent=score;
-  document.getElementById('hi').textContent=highScore;
-  document.getElementById('lv2').textContent='❤️'.repeat(Math.max(0,lives));
-  document.getElementById('lv').textContent=level;
+// ── HUD ───────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('sc').textContent  = score;
+  document.getElementById('hi').textContent  = highScore;
+  document.getElementById('lv2').textContent = '❤️'.repeat(Math.max(0, lives));
+  document.getElementById('lv').textContent  = level;
 }
-
-function showOverlay(em,ti,su,sc,bt,cb){
-  document.getElementById('oem').textContent=em;
-  document.getElementById('otitle').textContent=ti;
-  document.getElementById('osub').textContent=su;
-  document.getElementById('oscr').textContent=sc;
-  const b=document.getElementById('obtn');b.textContent=bt;b.onclick=cb||startGame;
+function showOverlay(em, ti, su, sc, bt, cb) {
+  document.getElementById('oem').textContent   = em;
+  document.getElementById('otitle').textContent = ti;
+  document.getElementById('osub').textContent   = su;
+  document.getElementById('oscr').textContent   = sc;
+  const b = document.getElementById('obtn'); b.textContent = bt; b.onclick = cb;
   document.getElementById('overlay').classList.remove('hidden');
 }
 
-// ── DRAW ──────────────────────────────────────────────────────
-const ROW_COLORS={
-  goal:'#0a4a0a',water:'#0a1a4a',road:'#1a1a1a',safe:'#1a3a0a'
+// ── DRAW ─────────────────────────────────────────────────────────
+const ROW_BG = {
+  goal:  '#0a3a0a', water: '#0a1a4a',
+  road:  '#1a1a1a', safe:  '#1a3a0a'
 };
-const ROAD_STRIPE='rgba(255,220,0,0.15)';
+function draw() {
+  ctx.fillStyle = '#080412'; ctx.fillRect(0, 0, CW, CH);
 
-function draw(){
-  ctx.fillStyle='#080412';ctx.fillRect(0,0,CW,CH);
+  for (let r = 0; r < ROWS; r++) {
+    const lane = lanes[r];
+    const type = lane ? lane.type : 'safe';
+    const x = 0, y = r * CELL;
 
-  // Draw rows
-  for(let r=0;r<ROWS;r++){
-    const lane=lanes[r];
-    const type=lane?lane.type:'safe';
-    ctx.fillStyle=ROW_COLORS[type]||'#1a1a1a';
-    ctx.fillRect(0,r*CELL,CW,CELL);
+    // Row background
+    ctx.fillStyle = ROW_BG[type] || '#1a1a1a';
+    ctx.fillRect(x, y, CW, CELL);
 
     // Road markings
-    if(type==='road'){
-      ctx.fillStyle=ROAD_STRIPE;
-      ctx.fillRect(0,r*CELL+CELL/2-1,CW,2);
+    if (type === 'road') {
+      ctx.fillStyle = 'rgba(255,220,0,.12)';
+      ctx.fillRect(0, y + CELL/2 - 1, CW, 2);
     }
-    // Water ripple
-    if(type==='water'){
-      ctx.fillStyle='rgba(0,100,255,0.2)';
-      for(let x=0;x<CW;x+=30){
-        const off=Math.sin((Date.now()/400)+x/40)*3;
-        ctx.fillRect(x,r*CELL+CELL*0.4+off,20,3);
-      }
+    // Water shimmer
+    if (type === 'water') {
+      ctx.fillStyle = 'rgba(30,80,220,.3)';
+      ctx.fillRect(0, y, CW, CELL);
+      ctx.fillStyle = 'rgba(100,180,255,.12)';
+      for (let wx = (Date.now()/120) % 40; wx < CW; wx += 40)
+        ctx.fillRect(wx, y + CELL*0.35, 22, 3);
     }
+
     // Goal lily pads
-    if(type==='goal'){
-      ctx.font=`${CELL*0.75}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-      GOAL_SLOTS.forEach(s=>{
-        ctx.fillText(goalsFilled.includes(s)?'🐸':'🪷',s*CELL+CELL/2,r*CELL+CELL/2);
+    if (type === 'goal') {
+      GOAL_SLOTS.forEach(s => {
+        blitEmoji(goalsFilled.includes(s) ? '🐸' : '🪷', CELL*0.72, s*CELL+CELL/2, y+CELL/2);
       });
     }
-    // Lane objects
-    if(lane&&lane.objs){
-      lane.objs.forEach(o=>{
-        ctx.font=`${CELL*0.72}px serif`;ctx.textAlign='left';ctx.textBaseline='middle';
-        const x=o.x*CELL;
-        // Draw stretched object
-        for(let i=0;i<o.w;i+=0.6){
-          ctx.fillText(o.emoji,(x+i*CELL)%CW,r*CELL+CELL/2);
+
+    // Lane objects (cars / logs)
+    if (lane && lane.objs) {
+      lane.objs.forEach(o => {
+        const objX = o.x * CELL;
+        if (type === 'road') {
+          // Draw car via blitEmoji (fixes WebKit transparency); centre-align on objX + half cell
+          blitEmoji(o.emoji, CELL*0.72, objX + CELL/2, y + CELL/2);
+          if (objX + o.w*CELL > CW) blitEmoji(o.emoji, CELL*0.72, objX - CW + CELL/2, y + CELL/2);
+        } else {
+          // Log — draw as a brown rectangle + emoji
+          ctx.fillStyle = '#8B5E3C';
+          const logW = o.w * CELL;
+          ctx.fillRect(objX, y + CELL*0.25, logW, CELL*0.5);
+          if (objX + logW > CW) ctx.fillRect(objX - CW, y+CELL*0.25, logW, CELL*0.5);
+          ctx.fillStyle = '#A0714F';
+          ctx.fillRect(objX + 2, y+CELL*0.28, logW - 4, CELL*0.12);
+          if (objX + logW > CW) ctx.fillRect(objX-CW+2, y+CELL*0.28, logW-4, CELL*0.12);
         }
       });
     }
   }
 
-  // Safe zones grass decoration
-  [4,10,11,12].forEach(r=>{
-    ctx.fillStyle='rgba(105,255,71,0.07)';
-    for(let x=0;x<COLS;x+=2) ctx.fillRect(x*CELL,r*CELL,CELL,CELL);
-  });
-
   // Frog
-  let fx=frog.col, fy=frog.row;
-  if(hopAnim.active){
-    fx=hopAnim.fromX+(hopAnim.toX-hopAnim.fromX)*hopAnim.t;
-    fy=hopAnim.fromY+(hopAnim.toY-hopAnim.fromY)*hopAnim.t;
+  let fx = frog.col, fy = frog.row;
+  if (hopAnim.active) {
+    const t = hopAnim.t;
+    fx = hopAnim.fromX + (hopAnim.toX - hopAnim.fromX) * t;
+    fy = hopAnim.fromY + (hopAnim.toY - hopAnim.fromY) * t;
   }
-  const bounce=hopAnim.active?Math.sin(hopAnim.t*Math.PI)*0.4:0;
-  ctx.save();
-  ctx.translate(fx*CELL+CELL/2,(fy-bounce)*CELL+CELL/2);
-  ctx.shadowColor='#69FF47';ctx.shadowBlur=14;
-  ctx.font=`${CELL*0.82}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('🐸',0,0);
-  ctx.restore();
+  const bounceY = hopAnim.active ? Math.sin(hopAnim.t * Math.PI) * 0.5 : 0;
 
-  if(gamePaused){
-    ctx.fillStyle='rgba(10,5,30,.72)';ctx.fillRect(0,0,CW,CH);
-    ctx.font=`bold ${CELL*1.6}px "Fredoka One",cursive`;
-    ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('⏸',CW/2,CH/2);
+  // Blink when invincible
+  if (invincible <= 0 || Math.floor(invincible / 120) % 2 === 0) {
+    ctx.save();
+    ctx.shadowColor = '#69FF47'; ctx.shadowBlur = 12;
+    blitEmoji('🐸', CELL*0.82, fx*CELL+CELL/2, (fy - bounceY)*CELL+CELL/2);
+    ctx.restore();
+  }
+
+  if (gamePaused) {
+    ctx.fillStyle = 'rgba(10,5,30,.72)'; ctx.fillRect(0,0,CW,CH);
+    ctx.font = `bold ${CELL*1.5}px "Fredoka One",cursive`;
+    ctx.fillStyle = '#FFD700'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('⏸', CW/2, CH/2);
   }
 }
 
-// ── AUDIO ──────────────────────────────────────────────────────
+// ── AUDIO ─────────────────────────────────────────────────────────
 let actx;
 function beep(f,d,t,v){
   try{
-    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)();
     const o=actx.createOscillator(),g=actx.createGain();
     o.connect(g);g.connect(actx.destination);
     o.type=t||'square';o.frequency.value=f;
@@ -415,38 +518,38 @@ function beep(f,d,t,v){
     o.start();o.stop(actx.currentTime+d);
   }catch(e){}
 }
-function sfxHop(){beep(440,.04,'square',.1)}
-function sfxSplat(){[250,200,150].forEach((f,i)=>setTimeout(()=>beep(f,.08,'sawtooth',.15),i*60))}
-function sfxWin(){[440,550,660,880].forEach((f,i)=>setTimeout(()=>beep(f,.09,'square',.12),i*80))}
+function sfxHop()  { beep(440,.04,'square',.1); }
+function sfxSplat(){ [250,200,150].forEach((f,i)=>setTimeout(()=>beep(f,.08,'sawtooth',.15),i*60)); }
+function sfxWin()  { [440,550,660,880].forEach((f,i)=>setTimeout(()=>beep(f,.09,'square',.12),i*80)); }
 
-// ── INPUT ──────────────────────────────────────────────────────
-[['du',0,-1],['dd',0,1],['dl',-1,0],['dr',1,0]].forEach(([id,dc,dr])=>{
-  const b=document.getElementById(id);
-  b.addEventListener('touchstart',e=>{e.preventDefault();hop(dc,dr)},{passive:false});
-  b.addEventListener('mousedown',()=>hop(dc,dr));
+// ── INPUT ─────────────────────────────────────────────────────────
+[['du',0,-1],['dd',0,1],['dl',-1,0],['dr',1,0]].forEach(([id,dc,dr]) => {
+  const b = document.getElementById(id);
+  b.addEventListener('touchstart', e => { e.preventDefault(); hop(dc, dr); }, { passive:false });
+  b.addEventListener('mousedown', () => hop(dc, dr));
+});
+document.addEventListener('keydown', e => {
+  const m = {'ArrowUp':[0,-1],'ArrowDown':[0,1],'ArrowLeft':[-1,0],'ArrowRight':[1,0]};
+  if (m[e.key]) { e.preventDefault(); hop(...m[e.key]); }
+  if (e.key==='p'||e.key==='Escape') togglePause();
 });
 
-document.addEventListener('keydown',e=>{
-  const m={'ArrowUp':[0,-1],'ArrowDown':[0,1],'ArrowLeft':[-1,0],'ArrowRight':[1,0]};
-  if(m[e.key]){e.preventDefault();hop(...m[e.key]);}
-  if(e.key==='p'||e.key==='Escape')togglePause();
-});
-
-let ts0=null,tx0,ty0;
-canvas.addEventListener('touchstart',e=>{e.preventDefault();ts0=e.touches[0];tx0=ts0.clientX;ty0=ts0.clientY},{passive:false});
-canvas.addEventListener('touchend',e=>{
-  e.preventDefault();if(!ts0)return;
-  const dx=e.changedTouches[0].clientX-tx0,dy=e.changedTouches[0].clientY-ty0;
-  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>20)hop(dx>0?1:-1,0);}
-  else{if(Math.abs(dy)>20)hop(0,dy>0?1:-1);}
-  ts0=null;
+// Swipe on canvas
+let swp = null;
+canvas.addEventListener('touchstart', e=>{e.preventDefault();swp=e.touches[0];},{passive:false});
+canvas.addEventListener('touchend', e=>{
+  e.preventDefault(); if(!swp) return;
+  const dx=e.changedTouches[0].clientX-swp.clientX, dy=e.changedTouches[0].clientY-swp.clientY;
+  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>18)hop(dx>0?1:-1,0);}
+  else{if(Math.abs(dy)>18)hop(0,dy>0?1:-1);}
+  swp=null;
 },{passive:false});
 
-function spawn(e,cx,cy){
-  const el=document.createElement('div');el.className='particle';el.textContent=e;
+function spawn(e, cx, cy) {
+  const el=document.createElement('div'); el.className='particle'; el.textContent=e;
   const r=canvas.getBoundingClientRect();
-  el.style.left=(r.left+cx)+'px';el.style.top=(r.top+cy)+'px';
-  document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+  el.style.left=(r.left+cx)+'px'; el.style.top=(r.top+cy)+'px';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),1000);
 }
 
 draw();

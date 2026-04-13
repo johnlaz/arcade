@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🏎️ Kart Racer!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+  :root {
+    --sky: #87CEEB;
+    --grass: #4CAF50;
+    --road: #555;
+    --stripe: #fff;
+    --yellow: #FFD700;
+    --pink: #FF6B9D;
+    --purple: #9B59B6;
+    --orange: #FF8C00;
+    --teal: #00BCD4;
+    --red: #E74C3C;
+    --green: #2ECC71;
+    --star: #FFD700;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #FF6B9D, #FFD700);
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 100;
+    position: relative;
+  }
+  #topbar a { text-decoration: none; font-size: 1.4rem; }
+  #topbar h1 { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 0 rgba(0,0,0,0.2); }
+  #score-badge {
+    background: #fff;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-weight: 800;
+    color: #FF6B9D;
+    font-size: 0.9rem;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  /* ── CANVAS WRAPPER ── */
+  #game-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    flex: 1;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+
+  /* ── HUD OVERLAY ── */
+  #hud {
+    position: absolute;
+    top: 8px; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 10px;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .hud-pill {
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    border-radius: 20px;
+    padding: 5px 13px;
+    backdrop-filter: blur(4px);
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  #lap-display { font-size: 1.1rem; color: var(--yellow); }
+  #pos-display { color: #7FFF00; }
+  #speed-display { color: var(--teal); }
+
+  /* ── CONTROLS BAR ── */
+  #controls {
+    width: 100%;
+    max-width: 600px;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .ctrl-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #FF6B9D, #FF8C00);
+    border: none;
+    border-radius: 50%;
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+    touch-action: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    color: #fff;
+    transition: transform 0.05s, box-shadow 0.05s;
+  }
+  .ctrl-btn:active, .ctrl-btn.pressed {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .ctrl-btn.gas {
+    background: linear-gradient(135deg, #2ECC71, #00BCD4);
+    width: 68px; height: 68px;
+    font-size: 1.8rem;
+  }
+  .ctrl-btn.brake {
+    background: linear-gradient(135deg, #E74C3C, #FF8C00);
+  }
+
+  #gyro-toggle {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.2;
+    min-width: 52px;
+  }
+  #gyro-toggle.on {
+    background: rgba(0,188,212,0.4);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+
+  /* ── MODAL OVERLAY ── */
+  #modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(6px);
+  }
+  #modal.hidden { display: none; }
+
+  .modal-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 3px solid var(--yellow);
+    border-radius: 24px;
+    padding: 28px 24px;
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(255,215,0,0.3);
+  }
+  .modal-box h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--yellow);
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    margin-bottom: 8px;
+  }
+  .modal-box p {
+    color: #ccc;
+    font-size: 1rem;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .modal-box .result-row {
+    display: flex;
+    justify-content: space-between;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 4px;
+  }
+  .podium-emoji { font-size: 2.5rem; display: block; margin-bottom: 4px; }
+
+  .big-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #FF6B9D, #FFD700);
+    border: none;
+    border-radius: 30px;
+    padding: 12px 32px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+    margin-top: 12px;
+    width: 100%;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+  }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+
+  /* ── MINI MAP ── */
+  #minimap {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 90px;
+    height: 90px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.5);
+    z-index: 50;
+  }
+
+  /* ── ITEM DISPLAY ── */
+  #item-display {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 1.8rem;
+    z-index: 50;
+    min-width: 48px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  /* ── COUNTDOWN ── */
+  #countdown {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 6rem;
+    color: var(--yellow);
+    text-shadow: 0 0 30px rgba(255,215,0,0.8), 3px 3px 0 rgba(0,0,0,0.5);
+    z-index: 150;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  /* ── FLOATING MESSAGES ── */
+  .float-msg {
+    position: absolute;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    pointer-events: none;
+    z-index: 90;
+    animation: floatUp 1.2s forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    50% { opacity: 1; transform: translateY(-40px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <a href="https://johnlaz.github.io/arcade/index.html">🏠</a>
+  <h1>🏎️ Kart Racer!</h1>
+  <div id="score-badge">⭐ <span id="star-count">0</span></div>
+</div>
+
+<!-- GAME -->
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-pill" id="lap-display">Lap 1/3</div>
+    <div class="hud-pill" id="pos-display">🏎️ 1st</div>
+    <div class="hud-pill" id="speed-display">💨 0</div>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown"></div>
+
+  <!-- MINI MAP -->
+  <canvas id="minimap"></canvas>
+
+  <!-- ITEM BOX -->
+  <div id="item-display" title="Tap to use item!">—</div>
+
+  <!-- MODAL -->
+  <div id="modal">
+    <div class="modal-box">
+      <h2 id="modal-title">🏎️ Kart Racer!</h2>
+      <div id="modal-body">
+        <p>Race 3 laps around the track!<br>Collect item boxes 📦 for power-ups!<br>Bump other karts for fun! 🎉</p>
+        <p style="color:var(--teal); font-size:0.85rem; margin-top:4px;">Gyro steering available on mobile!</p>
+      </div>
+      <button class="big-btn" id="modal-btn" onclick="startRace()">🚦 Start Race!</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="ctrl-btn" id="btn-left" ontouchstart="keys.left=true" ontouchend="keys.left=false" onmousedown="keys.left=true" onmouseup="keys.left=false">◀️</button>
+  <button class="ctrl-btn brake" id="btn-brake" ontouchstart="keys.brake=true" ontouchend="keys.brake=false" onmousedown="keys.brake=true" onmouseup="keys.brake=false">🛑</button>
+  <button class="ctrl-btn gas" id="btn-gas" ontouchstart="keys.gas=true" ontouchend="keys.gas=false" onmousedown="keys.gas=true" onmouseup="keys.gas=false">🚀</button>
+  <button class="ctrl-btn brake" id="btn-item" onclick="useItem()">🎁</button>
+  <button class="ctrl-btn" id="btn-right" ontouchstart="keys.right=true" ontouchend="keys.right=false" onmousedown="keys.right=true" onmouseup="keys.right=false">▶️</button>
+  <button id="gyro-toggle" onclick="toggleGyro()">📱<br>GYRO<br>OFF</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  KART RACER — single-file canvas game
+// ═══════════════════════════════════════════════════════════
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const minimap = document.getElementById('minimap');
+const mctx = minimap.getContext('2d');
+
+// ── RESIZE ──────────────────────────────────────────────────
+function resize() {
+  const wrap = document.getElementById('game-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  minimap.width = 90; minimap.height = 90;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── TRACK DEFINITION ────────────────────────────────────────
+// Track is a series of waypoints forming a closed loop (world coords)
+// Road width in world units
+const ROAD_W = 190;
+const TRACK_PTS = buildTrack();
+
+function buildTrack() {
+  // Large figure-8-ish oval with bumps
+  const pts = [];
+  const cx = 1200, cy = 900;
+  const rx = 1050, ry = 720;
+  const N = 48;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+    const r = (rx * ry) / Math.sqrt((ry * Math.cos(a))**2 + (rx * Math.sin(a))**2);
+    // Add gentle chicane bumps
+    const bump = Math.sin(a * 3) * 60;
+    pts.push({ x: cx + (r + bump) * Math.cos(a), y: cy + (r + bump) * Math.sin(a) });
+  }
+  return pts;
+}
+
+// Compute cumulative distances for track parameterization
+const trackLen = (() => {
+  let d = 0;
+  for (let i = 0; i < TRACK_PTS.length; i++) {
+    const a = TRACK_PTS[i], b = TRACK_PTS[(i+1) % TRACK_PTS.length];
+    d += Math.hypot(b.x - a.x, b.y - a.y);
+  }
+  return d;
+})();
+
+function trackProgress(x, y) {
+  // Return [0,1) progress along track
+  let best = Infinity, bestIdx = 0, bestT = 0;
+  for (let i = 0; i < TRACK_PTS.length; i++) {
+    const a = TRACK_PTS[i], b = TRACK_PTS[(i+1) % TRACK_PTS.length];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.hypot(dx, dy);
+    const t = Math.max(0, Math.min(1, ((x - a.x)*dx + (y - a.y)*dy) / (len*len)));
+    const px = a.x + t*dx - x, py = a.y + t*dy - y;
+    const d = Math.hypot(px, py);
+    if (d < best) { best = d; bestIdx = i; bestT = t; }
+  }
+  // Compute cumulative dist to bestIdx
+  let cum = 0;
+  for (let i = 0; i < bestIdx; i++) {
+    const a = TRACK_PTS[i], b = TRACK_PTS[(i+1) % TRACK_PTS.length];
+    cum += Math.hypot(b.x - a.x, b.y - a.y);
+  }
+  const a = TRACK_PTS[bestIdx], b = TRACK_PTS[(bestIdx+1) % TRACK_PTS.length];
+  cum += bestT * Math.hypot(b.x - a.x, b.y - a.y);
+  return cum / trackLen;
+}
+
+function nearestOnTrack(x, y) {
+  let best = Infinity, bx = x, by = y, bAngle = 0;
+  for (let i = 0; i < TRACK_PTS.length; i++) {
+    const a = TRACK_PTS[i], b = TRACK_PTS[(i+1) % TRACK_PTS.length];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len2 = dx*dx + dy*dy;
+    const t = Math.max(0, Math.min(1, ((x-a.x)*dx + (y-a.y)*dy) / len2));
+    const px = a.x + t*dx, py = a.y + t*dy;
+    const d = Math.hypot(px - x, py - y);
+    if (d < best) { best = d; bx = px; by = py; bAngle = Math.atan2(dy, dx); }
+  }
+  return { x: bx, y: by, angle: bAngle, dist: best };
+}
+
+// ── ITEM BOXES ───────────────────────────────────────────────
+const ITEMS = ['🍌','⭐','💣','🐢','⚡','🌈','🎯'];
+const ITEM_LABELS = { '🍌':'Banana!','⭐':'Star Power!','💣':'Bob-omb!','🐢':'Shell!','⚡':'Lightning!','🌈':'Rainbow Road!','🎯':'Homing!' };
+let itemBoxes = [];
+
+function spawnItemBoxes() {
+  itemBoxes = [];
+  for (let i = 0; i < 8; i++) {
+    const t = i / 8;
+    const idx = Math.floor(t * TRACK_PTS.length);
+    const a = TRACK_PTS[idx], b = TRACK_PTS[(idx+1) % TRACK_PTS.length];
+    const angle = Math.atan2(b.y - a.y, b.x - a.x);
+    const offset = (Math.random() - 0.5) * ROAD_W * 0.5;
+    itemBoxes.push({
+      x: a.x + Math.cos(angle + Math.PI/2) * offset,
+      y: a.y + Math.sin(angle + Math.PI/2) * offset,
+      active: true,
+      respawn: 0
+    });
+  }
+}
+
+// ── KART CLASS ───────────────────────────────────────────────
+const KART_EMOJIS = ['🏎️','🚗','🚕','🚙','🚌'];
+const KART_COLORS = ['#FF6B9D','#00BCD4','#FFD700','#2ECC71','#9B59B6'];
+const AI_NAMES    = ['Speedy','Sunny','Zippy','Flash'];
+
+class Kart {
+  constructor(id, isPlayer, color, emoji) {
+    this.id = id;
+    this.isPlayer = isPlayer;
+    this.color = color || KART_COLORS[id % KART_COLORS.length];
+    this.emoji = emoji;
+    this.x = 0; this.y = 0;
+    this.angle = 0;
+    this.vx = 0; this.vy = 0;
+    this.speed = 0;
+    this.lap = 0;
+    this.progress = 0;
+    this.lastProgress = 0;
+    this.item = null;
+    this.stunTimer = 0;
+    this.starTimer = 0;
+    this.rainbowTimer = 0;
+    this.finished = false;
+    this.finishRank = 0;
+    this.name = isPlayer ? 'You' : AI_NAMES[id-1];
+  }
+
+  reset(startIdx) {
+    const pt = TRACK_PTS[startIdx % TRACK_PTS.length];
+    const next = TRACK_PTS[(startIdx+1) % TRACK_PTS.length];
+    const angle = Math.atan2(next.y - pt.y, next.x - pt.x);
+    const offset = (startIdx - Math.floor(TRACK_PTS.length * 0)) * 30;
+    this.x = pt.x + Math.cos(angle + Math.PI/2) * ((this.id - 2.5) * 40);
+    this.y = pt.y + Math.sin(angle + Math.PI/2) * ((this.id - 2.5) * 40);
+    this.x -= Math.cos(angle) * offset;
+    this.y -= Math.sin(angle) * offset;
+    this.angle = angle;
+    this.vx = 0; this.vy = 0; this.speed = 0;
+    this.lap = 0; this.progress = 0; this.lastProgress = 0;
+    this.item = null;
+    this.stunTimer = 0; this.starTimer = 0; this.rainbowTimer = 0;
+    this.finished = false; this.finishRank = 0;
+  }
+}
+
+// ── GAME STATE ───────────────────────────────────────────────
+let karts = [];
+let player;
+let gameState = 'title'; // title | countdown | racing | finished
+let raceNum = 0;
+let totalStars = 0;
+let finishOrder = [];
+let frameId;
+let lastTime = 0;
+let countdownVal = 3;
+let countdownTimer = 0;
+
+const LAPS = 3;
+const NUM_AI = 4;
+
+// ── CONTROLS ─────────────────────────────────────────────────
+const keys = { left: false, right: false, gas: false, brake: false };
+let gyroOn = false;
+let gyroAngle = 0;
+
+// Keyboard
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft'  || e.key === 'a') keys.left = true;
+  if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+  if (e.key === 'ArrowUp'    || e.key === 'w' || e.key === ' ') keys.gas = true;
+  if (e.key === 'ArrowDown'  || e.key === 's') keys.brake = true;
+  if (e.key === 'Enter' || e.key === ' ') useItem();
+});
+window.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft'  || e.key === 'a') keys.left = false;
+  if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+  if (e.key === 'ArrowUp'    || e.key === 'w' || e.key === ' ') keys.gas = false;
+  if (e.key === 'ArrowDown'  || e.key === 's') keys.brake = false;
+});
+
+function toggleGyro() {
+  if (!gyroOn) {
+    // Request permission on iOS
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(r => {
+        if (r === 'granted') activateGyro();
+      });
+    } else {
+      activateGyro();
+    }
+  } else {
+    gyroOn = false;
+    document.getElementById('gyro-toggle').textContent = '📱\nGYRO\nOFF';
+    document.getElementById('gyro-toggle').className = '';
+  }
+}
+
+function activateGyro() {
+  gyroOn = true;
+  const btn = document.getElementById('gyro-toggle');
+  btn.innerHTML = '📱<br>GYRO<br>ON';
+  btn.className = 'on';
+  window.addEventListener('deviceorientation', e => {
+    // gamma: left-right tilt [-90, 90]
+    gyroAngle = (e.gamma || 0) / 45; // normalize to [-2, 2] range
+  });
+}
+
+function useItem() {
+  if (!player || !player.item || gameState !== 'racing') return;
+  const item = player.item;
+  player.item = null;
+  document.getElementById('item-display').textContent = '—';
+  applyItem(player, item);
+}
+
+function applyItem(kart, item) {
+  floatMessage(kart.x, kart.y, ITEM_LABELS[item] || item, '#FFD700');
+  if (item === '⭐') { kart.starTimer = 5000; }
+  else if (item === '🌈') { kart.rainbowTimer = 8000; }
+  else if (item === '⚡') {
+    karts.filter(k => k !== kart && !k.finished).forEach(k => { k.stunTimer = Math.max(k.stunTimer, 1500); });
+  }
+  else if (item === '💣' || item === '🐢' || item === '🎯' || item === '🍌') {
+    // Stun nearest opponent
+    let nearest = null, bd = Infinity;
+    karts.filter(k => k !== kart && !k.finished).forEach(k => {
+      const d = Math.hypot(k.x - kart.x, k.y - kart.y);
+      if (d < bd) { bd = d; nearest = k; }
+    });
+    if (nearest && bd < 600) {
+      nearest.stunTimer = Math.max(nearest.stunTimer, 2000);
+      floatMessage(nearest.x, nearest.y, '😵', '#FF6B9D');
+    }
+  }
+}
+
+// ── FLOAT MESSAGES ───────────────────────────────────────────
+const floatMsgs = [];
+
+function floatMessage(wx, wy, text, color) {
+  floatMsgs.push({ wx, wy, text, color, t: 0, dur: 1200 });
+}
+
+// ── CAMERA ───────────────────────────────────────────────────
+let cam = { x: 0, y: 0, scale: 1 };
+
+function updateCamera() {
+  if (!player) return;
+  const tw = canvas.width / cam.scale;
+  const th = canvas.height / cam.scale;
+  cam.x += (player.x - cam.x - tw/2) * 0.12;
+  cam.y += (player.y - cam.y - th/2) * 0.12;
+  // Adjust scale based on screen size - zoom out for bigger track
+  cam.scale = Math.min(canvas.width, canvas.height) / 800;
+}
+
+function worldToScreen(wx, wy) {
+  return {
+    x: (wx - cam.x) * cam.scale,
+    y: (wy - cam.y) * cam.scale
+  };
+}
+
+// ── TRACK RENDERING ──────────────────────────────────────────
+function drawTrack() {
+  // Grass background
+  ctx.fillStyle = '#3a7d3a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw grass pattern
+  ctx.fillStyle = '#2d6b2d';
+  for (let gx = 0; gx < canvas.width + 60; gx += 60) {
+    for (let gy = 0; gy < canvas.height + 60; gy += 60) {
+      if ((Math.floor(gx/60) + Math.floor(gy/60)) % 2 === 0)
+        ctx.fillRect(gx, gy, 60, 60);
+    }
+  }
+
+  const scale = cam.scale;
+
+  // Road shadow
+  ctx.save();
+  ctx.translate(-cam.x * scale, -cam.y * scale);
+  ctx.scale(scale, scale);
+
+  // Road fill
+  ctx.beginPath();
+  ctx.moveTo(TRACK_PTS[0].x, TRACK_PTS[0].y);
+  TRACK_PTS.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.closePath();
+
+  ctx.lineWidth = ROAD_W + 16;
+  ctx.strokeStyle = '#333';
+  ctx.stroke();
+  ctx.lineWidth = ROAD_W;
+  ctx.strokeStyle = '#555';
+  ctx.stroke();
+
+  // White center line
+  ctx.setLineDash([40, 30]);
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Road edge lines
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = ROAD_W + 16;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.stroke();
+
+  // Rumble strips (red/white alternating)
+  for (let i = 0; i < TRACK_PTS.length; i++) {
+    const a = TRACK_PTS[i], b = TRACK_PTS[(i+1) % TRACK_PTS.length];
+    const angle = Math.atan2(b.y - a.y, b.x - a.x) + Math.PI/2;
+    const halfW = ROAD_W / 2 + 8;
+    const col = i % 2 === 0 ? '#E74C3C' : '#fff';
+    ctx.fillStyle = col;
+    const pts = [
+      { x: a.x + Math.cos(angle)*halfW, y: a.y + Math.sin(angle)*halfW },
+      { x: b.x + Math.cos(angle)*halfW, y: b.y + Math.sin(angle)*halfW },
+      { x: b.x + Math.cos(angle)*(halfW+12), y: b.y + Math.sin(angle)*(halfW+12) },
+      { x: a.x + Math.cos(angle)*(halfW+12), y: a.y + Math.sin(angle)*(halfW+12) },
+    ];
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath(); ctx.fill();
+
+    // Other side
+    const pts2 = [
+      { x: a.x - Math.cos(angle)*halfW, y: a.y - Math.sin(angle)*halfW },
+      { x: b.x - Math.cos(angle)*halfW, y: b.y - Math.sin(angle)*halfW },
+      { x: b.x - Math.cos(angle)*(halfW+12), y: b.y - Math.sin(angle)*(halfW+12) },
+      { x: a.x - Math.cos(angle)*(halfW+12), y: a.y - Math.sin(angle)*(halfW+12) },
+    ];
+    ctx.beginPath();
+    ctx.moveTo(pts2[0].x, pts2[0].y);
+    pts2.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath(); ctx.fill();
+  }
+
+  // Start/finish line
+  const sf = TRACK_PTS[0], sf2 = TRACK_PTS[1];
+  const sfAngle = Math.atan2(sf2.y - sf.y, sf2.x - sf.x) + Math.PI/2;
+  ctx.save();
+  ctx.translate(sf.x, sf.y);
+  ctx.rotate(sfAngle);
+  const sqSize = 12;
+  for (let col = -4; col < 5; col++) {
+    for (let row = 0; row < 2; row++) {
+      ctx.fillStyle = (col + row) % 2 === 0 ? '#fff' : '#000';
+      ctx.fillRect(col * sqSize, row * sqSize, sqSize, sqSize);
+    }
+  }
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ── DECORATIONS ───────────────────────────────────────────────
+const DECOS = (() => {
+  const d = [];
+  const rng = (a,b) => a + Math.random()*(b-a);
+
+  // Trackside items — both sides, varied distance
+  const TRACKSIDE = [
+    '🌳','🌳','🌳','🌲','🌲','🌴','🌵','🌺','🌸','🌼','🌻',
+    '⛽','🎪','🏠','🏚️','🏗️','🚧','🏎️',
+    '🎠','🎡','🎢','🏟️','🏬','🏪','🍔','🍕','🍦','☕','🎰',
+    '🌊','💧','🪨','🐄','🐑','🐇','🦊','🦝','🦌',
+    '⛺','🏕️','🚌','🚛','🚜','🛻','🚂','✈️',
+    '🎈','🎆','🎇','🪁','⛳','🏌️','🎭','🎬','📸'
+  ];
+
+  for (let i = 0; i < 180; i++) {
+    const t = Math.random();
+    const idx = Math.floor(t * TRACK_PTS.length);
+    const a = TRACK_PTS[idx], b = TRACK_PTS[(idx+1) % TRACK_PTS.length];
+    const angle = Math.atan2(b.y - a.y, b.x - a.x) + Math.PI/2;
+    const side = Math.random() < 0.5 ? 1 : -1;
+    const dist = ROAD_W/2 + 28 + rng(0, 340);
+    d.push({
+      x: a.x + Math.cos(angle) * side * dist,
+      y: a.y + Math.sin(angle) * side * dist,
+      emoji: TRACKSIDE[Math.floor(Math.random()*TRACKSIDE.length)],
+      scale: rng(0.6, 1.4)
+    });
+  }
+
+  // Interior/center field scatter
+  const CENTER_EMOJIS = [
+    '🌳','🌲','🌴','🌵','🌿','🌾','🍀','🌱',
+    '🏠','🏡','🏘️','🏰','🏯','⛪','🕌','🛕',
+    '🎪','🎡','🎢','🎠','🏟️','🎭',
+    '🐄','🐑','🐐','🦌','🐴','🐎',
+    '⛺','🏕️','🚜','🛖','🪵','🌊','🏊','⛵'
+  ];
+  for (let i = 0; i < 80; i++) {
+    d.push({
+      x: 200 + Math.random() * 2000,
+      y: 200 + Math.random() * 1400,
+      emoji: CENTER_EMOJIS[Math.floor(Math.random()*CENTER_EMOJIS.length)],
+      scale: rng(0.5, 1.5)
+    });
+  }
+
+  return d;
+})();
+
+function drawDecos() {
+  const scale = cam.scale;
+  DECOS.forEach(d => {
+    const s = worldToScreen(d.x, d.y);
+    if (s.x < -60 || s.x > canvas.width + 60 || s.y < -60 || s.y > canvas.height + 60) return;
+    ctx.font = `${Math.round(30 * d.scale * scale)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(d.emoji, s.x, s.y);
+  });
+}
+
+// ── ITEM BOXES RENDERING ─────────────────────────────────────
+function drawItemBoxes(t) {
+  const scale = cam.scale;
+  itemBoxes.forEach(b => {
+    if (!b.active) return;
+    const s = worldToScreen(b.x, b.y);
+    if (s.x < -30 || s.x > canvas.width + 30) return;
+    const sz = 24 * scale;
+    const spin = t * 0.002 % (Math.PI*2);
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(spin);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.roundRect(-sz/2, -sz/2, sz, sz, 6 * scale);
+    ctx.fill(); ctx.stroke();
+    ctx.font = `${Math.round(16*scale)}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('📦', 0, 0);
+    ctx.restore();
+  });
+}
+
+// ── KART RENDERING ───────────────────────────────────────────
+function drawKart(k, t) {
+  const s = worldToScreen(k.x, k.y);
+  const scale = cam.scale;
+  const sz = 24 * scale;
+
+  ctx.save();
+  ctx.translate(s.x, s.y);
+
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(2*scale, 4*scale, sz*0.7, sz*0.25, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // --- Direction arrow (rotates with kart angle) ---
+  ctx.save();
+  ctx.rotate(k.angle + Math.PI / 2);
+
+  // Glow ring for star/rainbow power
+  if (k.starTimer > 0 || k.rainbowTimer > 0) {
+    const glowCol = k.rainbowTimer > 0
+      ? `hsl(${(t * 0.4) % 360},100%,60%)`
+      : '#FFD700';
+    ctx.shadowColor = glowCol;
+    ctx.shadowBlur = 18 * scale;
+    ctx.beginPath();
+    ctx.arc(0, 0, sz * 0.85, 0, Math.PI * 2);
+    ctx.strokeStyle = glowCol;
+    ctx.lineWidth = 3 * scale;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Arrow/chevron body showing direction
+  const aw = sz * 0.55;
+  const ah = sz * 0.9;
+  ctx.fillStyle = k.color;
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 1.5 * scale;
+  ctx.beginPath();
+  ctx.moveTo(0, -ah * 0.6);           // tip (front)
+  ctx.lineTo( aw * 0.5, ah * 0.4);   // rear right
+  ctx.lineTo( aw * 0.2, ah * 0.15);  // rear right notch
+  ctx.lineTo(-aw * 0.2, ah * 0.15);  // rear left notch
+  ctx.lineTo(-aw * 0.5, ah * 0.4);   // rear left
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Emoji always drawn upright ---
+  ctx.font = `${Math.round(sz * 1.3)}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(k.emoji, 0, 0);
+
+  // Stun stars orbit (no rotation on context needed)
+  if (k.stunTimer > 0) {
+    ctx.font = `${Math.round(sz * 0.65)}px serif`;
+    for (let i = 0; i < 3; i++) {
+      const a2 = (t * 0.005 + i * Math.PI * 2 / 3);
+      ctx.fillText('⭐', Math.cos(a2) * sz * 0.95, -sz * 0.3 + Math.sin(a2) * sz * 0.5);
+    }
+  }
+
+  ctx.restore();
+
+  // Name tag for AI karts
+  if (!k.isPlayer) {
+    ctx.save();
+    ctx.translate(s.x, s.y - sz * 1.5);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.beginPath();
+    ctx.roundRect(-24*scale, -11*scale, 48*scale, 22*scale, 7*scale);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.round(11*scale)}px Nunito, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(k.name, 0, 0);
+    ctx.restore();
+  }
+}
+
+// ── MINIMAP ───────────────────────────────────────────────────
+function drawMinimap() {
+  const W = 90, H = 90;
+  mctx.clearRect(0, 0, W, H);
+
+  // Track bounds (use fixed world bounds to include all decos)
+  let minX = 0, maxX = 2400, minY = 0, maxY = 1800;
+  const pad = 8;
+  const sx = (W - pad*2) / (maxX - minX);
+  const sy = (H - pad*2) / (maxY - minY);
+  const sc = Math.min(sx, sy);
+  const offX = pad + (W - pad*2 - (maxX-minX)*sc) / 2;
+  const offY = pad + (H - pad*2 - (maxY-minY)*sc) / 2;
+  const m = p => ({ x: offX + (p.x - minX)*sc, y: offY + (p.y - minY)*sc });
+
+  // Track
+  mctx.beginPath();
+  const p0 = m(TRACK_PTS[0]);
+  mctx.moveTo(p0.x, p0.y);
+  TRACK_PTS.forEach(p => { const mp = m(p); mctx.lineTo(mp.x, mp.y); });
+  mctx.closePath();
+  mctx.lineWidth = 8;
+  mctx.strokeStyle = '#666';
+  mctx.stroke();
+  mctx.lineWidth = 6;
+  mctx.strokeStyle = '#888';
+  mctx.stroke();
+
+  // Karts
+  karts.forEach(k => {
+    const mp = m(k);
+    mctx.beginPath();
+    mctx.arc(mp.x, mp.y, k.isPlayer ? 4 : 2.5, 0, Math.PI*2);
+    mctx.fillStyle = k.isPlayer ? '#FF6B9D' : KART_COLORS[k.id];
+    mctx.fill();
+  });
+}
+
+// ── FLOAT MESSAGES RENDER ────────────────────────────────────
+function drawFloatMsgs(dt) {
+  for (let i = floatMsgs.length - 1; i >= 0; i--) {
+    const f = floatMsgs[i];
+    f.t += dt;
+    if (f.t >= f.dur) { floatMsgs.splice(i, 1); continue; }
+    const progress = f.t / f.dur;
+    const s = worldToScreen(f.wx, f.wy - progress * 80);
+    ctx.save();
+    ctx.globalAlpha = 1 - progress;
+    ctx.font = `bold ${Math.round(20 * cam.scale)}px Fredoka One, cursive`;
+    ctx.fillStyle = f.color || '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(f.text, s.x, s.y);
+    ctx.restore();
+  }
+}
+
+// ── AI LOGIC ─────────────────────────────────────────────────
+function updateAI(k, dt) {
+  if (k.stunTimer > 0) return;
+
+  // Find target: next waypoint ahead on track
+  const prog = k.progress;
+  const targetProg = (prog + 0.04) % 1;
+  const targetIdx = Math.floor(targetProg * TRACK_PTS.length);
+  const target = TRACK_PTS[targetIdx];
+
+  // Steer toward target
+  const desired = Math.atan2(target.y - k.y, target.x - k.x);
+  let diff = desired - k.angle;
+  while (diff > Math.PI) diff -= Math.PI*2;
+  while (diff < -Math.PI) diff += Math.PI*2;
+
+  const turnRate = 0.04;
+  k.angle += Math.sign(diff) * Math.min(Math.abs(diff), turnRate) * (dt / 16);
+
+  // Speed — vary by AI
+  const maxSpeed = 3.5 + k.id * 0.15 + (k.starTimer > 0 ? 2 : 0);
+  k.speed = Math.min(k.speed + 0.08 * (dt/16), maxSpeed);
+
+  // Occasionally pick up items
+  if (!k.item && Math.random() < 0.002) {
+    k.item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    if (Math.random() < 0.4) applyItem(k, k.item), k.item = null;
+  }
+}
+
+// ── PHYSICS ───────────────────────────────────────────────────
+function updateKart(k, dt) {
+  if (k.finished) return;
+
+  k.stunTimer = Math.max(0, k.stunTimer - dt);
+  k.starTimer = Math.max(0, k.starTimer - dt);
+  k.rainbowTimer = Math.max(0, k.rainbowTimer - dt);
+
+  const invulnerable = k.starTimer > 0 || k.rainbowTimer > 0;
+
+  if (!k.isPlayer) {
+    updateAI(k, dt);
+  } else {
+    if (k.stunTimer > 0) {
+      k.speed *= 0.92;
+    } else {
+      // Steering
+      let steerInput = 0;
+      if (gyroOn) {
+        steerInput = Math.max(-1, Math.min(1, gyroAngle));
+      } else {
+        if (keys.left) steerInput = -1;
+        if (keys.right) steerInput = 1;
+      }
+
+      const maxTurn = 0.055;
+      k.angle += steerInput * maxTurn * (dt/16) * (0.5 + k.speed * 0.15);
+
+      // Gas / brake
+      const maxSpeed = 5 + (k.starTimer > 0 ? 2.5 : 0) + (k.rainbowTimer > 0 ? 3 : 0);
+      if (keys.gas) {
+        k.speed = Math.min(k.speed + 0.12 * (dt/16), maxSpeed);
+      } else if (keys.brake) {
+        k.speed = Math.max(0, k.speed - 0.18 * (dt/16));
+      } else {
+        k.speed = Math.max(0, k.speed - 0.04 * (dt/16));
+      }
+    }
+  }
+
+  // Move
+  k.vx = Math.cos(k.angle) * k.speed;
+  k.vy = Math.sin(k.angle) * k.speed;
+  k.x += k.vx * (dt/16);
+  k.y += k.vy * (dt/16);
+
+  // Off-road friction
+  const nearest = nearestOnTrack(k.x, k.y);
+  const offRoad = nearest.dist > ROAD_W/2 + 4;
+  if (offRoad && !invulnerable) {
+    k.speed *= 0.88;
+    // Gentle push back toward track
+    const pushX = nearest.x - k.x, pushY = nearest.y - k.y;
+    const pushDist = Math.hypot(pushX, pushY);
+    if (pushDist > 0) {
+      k.x += (pushX / pushDist) * 2;
+      k.y += (pushY / pushDist) * 2;
+    }
+  }
+
+  // Kart-kart bumping
+  karts.forEach(other => {
+    if (other === k) return;
+    const dx = k.x - other.x, dy = k.y - other.y;
+    const d = Math.hypot(dx, dy);
+    const minD = 36;
+    if (d < minD && d > 0) {
+      const push = (minD - d) / 2;
+      const nx = dx / d, ny = dy / d;
+      k.x += nx * push; k.y += ny * push;
+      other.x -= nx * push; other.y -= ny * push;
+      if (!invulnerable) k.speed *= 0.85;
+      if (!(other.starTimer > 0 || other.rainbowTimer > 0)) other.speed *= 0.85;
+      if (k.isPlayer && d < 28) floatMessage(k.x, k.y - 20, '💥', '#FFD700');
+    }
+  });
+
+  // Item box collection
+  itemBoxes.forEach(b => {
+    if (!b.active) return;
+    const d = Math.hypot(k.x - b.x, k.y - b.y);
+    if (d < 36) {
+      b.active = false;
+      b.respawn = 5000;
+      const got = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+      if (k.isPlayer && !k.item) {
+        k.item = got;
+        document.getElementById('item-display').textContent = got;
+        floatMessage(k.x, k.y - 30, '📦 Got ' + got, '#FFD700');
+      } else if (!k.isPlayer) {
+        k.item = got;
+      }
+    }
+  });
+
+  // Item box respawn
+  itemBoxes.forEach(b => {
+    if (!b.active) {
+      b.respawn -= dt;
+      if (b.respawn <= 0) b.active = true;
+    }
+  });
+
+  // Lap tracking
+  const newProg = trackProgress(k.x, k.y);
+  // Detect crossing finish line (progress wraps from ~0.95+ to ~0.02-)
+  if (k.lastProgress > 0.85 && newProg < 0.15) {
+    k.lap++;
+    if (k.isPlayer) {
+      if (k.lap <= LAPS) floatMessage(k.x, k.y - 60, `Lap ${k.lap}! 🏁`, '#7FFF00');
+    }
+    if (k.lap > LAPS && !k.finished) {
+      k.finished = true;
+      k.finishRank = finishOrder.length + 1;
+      finishOrder.push(k);
+      if (k.isPlayer) {
+        const pos = k.finishRank;
+        const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+        floatMessage(k.x, k.y - 80, medals[pos-1] + ' You finished!', '#FFD700');
+        // Small delay then show results
+        setTimeout(() => showResults(), 2500);
+      }
+      // Check if all finished
+      if (finishOrder.length === karts.length) {
+        setTimeout(() => showResults(), 500);
+      }
+    }
+  }
+  k.lastProgress = newProg;
+  k.progress = newProg;
+}
+
+// ── POSITION SORTING ─────────────────────────────────────────
+function getPositions() {
+  return karts
+    .filter(k => !k.finished)
+    .sort((a, b) => {
+      const lapDiff = b.lap - a.lap;
+      if (lapDiff !== 0) return lapDiff;
+      return b.progress - a.progress;
+    })
+    .concat(finishOrder.slice().reverse());
+}
+
+function playerPosition() {
+  const sorted = getPositions();
+  return sorted.findIndex(k => k.isPlayer) + 1;
+}
+
+// ── COUNTDOWN ────────────────────────────────────────────────
+function runCountdown() {
+  gameState = 'countdown';
+  countdownVal = 3;
+  const el = document.getElementById('countdown');
+  const step = () => {
+    el.style.opacity = '1';
+    el.textContent = countdownVal > 0 ? countdownVal : '🏁 GO!';
+    setTimeout(() => {
+      el.style.opacity = '0';
+      if (countdownVal > 0) {
+        countdownVal--;
+        setTimeout(step, 600);
+      } else {
+        gameState = 'racing';
+      }
+    }, 700);
+    if (countdownVal > 0) countdownVal--;
+  };
+  step();
+}
+
+// ── RACE SETUP ───────────────────────────────────────────────
+function startRace() {
+  document.getElementById('modal').classList.add('hidden');
+  finishOrder = [];
+
+  karts = [];
+  player = new Kart(0, true, '#FF6B9D', '🏎️');
+  karts.push(player);
+  for (let i = 1; i <= NUM_AI; i++) {
+    karts.push(new Kart(i, false, KART_COLORS[i], KART_EMOJIS[i]));
+  }
+  karts.forEach((k, i) => k.reset(i * 2));
+
+  spawnItemBoxes();
+  floatMsgs.length = 0;
+  raceNum++;
+
+  runCountdown();
+  if (!frameId) loop(0);
+}
+
+// ── RESULTS ───────────────────────────────────────────────────
+function showResults() {
+  if (gameState === 'finished') return;
+  gameState = 'finished';
+
+  // Sort remaining karts by progress
+  const remaining = karts.filter(k => !k.finished).sort((a,b) => {
+    const lapDiff = b.lap - a.lap;
+    if (lapDiff !== 0) return lapDiff;
+    return b.progress - a.progress;
+  });
+  remaining.forEach(k => { k.finishRank = finishOrder.length + 1; finishOrder.push(k); });
+
+  const playerRank = player.finishRank;
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const podiumEmoji = medals[playerRank - 1] || '🏁';
+
+  const starsEarned = Math.max(1, 5 - (playerRank - 1));
+  totalStars += starsEarned;
+  document.getElementById('star-count').textContent = totalStars;
+
+  const modal = document.getElementById('modal');
+  document.getElementById('modal-title').textContent = `${podiumEmoji} Race ${raceNum} Done!`;
+
+  let resultsHTML = `<div style="margin-bottom:10px;">`;
+  finishOrder.forEach((k, i) => {
+    const highlight = k.isPlayer ? 'color:var(--yellow);font-size:1.05rem;' : '';
+    resultsHTML += `<div class="result-row" style="${highlight}"><span>${medals[i]} ${k.name}</span><span>${k.emoji}</span></div>`;
+  });
+  resultsHTML += `</div><p style="color:#7FFF00;">+${starsEarned} ⭐ earned!</p>`;
+  document.getElementById('modal-body').innerHTML = resultsHTML;
+  document.getElementById('modal-btn').textContent = '🚦 Next Race!';
+
+  modal.classList.remove('hidden');
+}
+
+// ── HUD UPDATE ───────────────────────────────────────────────
+function updateHUD() {
+  if (!player) return;
+  const displayLap = Math.min(player.lap + 1, LAPS);
+  document.getElementById('lap-display').textContent = `Lap ${displayLap}/${LAPS}`;
+  const pos = playerPosition();
+  const suffix = ['st','nd','rd','th'][Math.min(pos-1,3)];
+  document.getElementById('pos-display').textContent = `🏎️ ${pos}${suffix}`;
+  document.getElementById('speed-display').textContent = `💨 ${Math.round(player.speed * 20)}`;
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────────
+function loop(time) {
+  frameId = requestAnimationFrame(loop);
+  const dt = Math.min(time - lastTime, 50);
+  lastTime = time;
+
+  if (gameState === 'racing') {
+    karts.forEach(k => updateKart(k, dt));
+  }
+
+  updateCamera();
+
+  // Draw
+  drawTrack();
+  drawDecos();
+  drawItemBoxes(time);
+  karts.forEach(k => drawKart(k, time));
+  drawFloatMsgs(dt);
+  drawMinimap();
+  updateHUD();
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+document.getElementById('item-display').addEventListener('click', useItem);
+loop(0);
+</script>
+</body>
+</html>
