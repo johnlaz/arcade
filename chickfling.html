@@ -12,7 +12,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{height:100%;background:var(--bg);color:#fff;font-family:var(--font-body);overflow:hidden;overscroll-behavior:none}
-#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 #hud{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#1a0a36,#120628);border-bottom:2px solid rgba(255,255,255,.1);z-index:5}
 .hbtn{width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#d9ccff;font-size:1.15rem;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;font-family:var(--font-title);flex:none}
 .hbtn:active{background:rgba(255,255,255,.25);transform:scale(.94)}
@@ -254,11 +254,11 @@ function createGame(M) {
   function spawnChick() {
     const kind = G.queue.shift();
     G.chickKind = kind;
-    const c = Bodies.circle(SLING.x, SLING.y, CHICK_R, { density: 0.006, friction: 0.4, restitution: 0.2, frictionAir: 0.001, label: 'chick' });
+    const c = Bodies.circle(SLING.x, SLING.y, CHICK_R, { density: 0.006, friction: 0.4, restitution: 0.2, frictionAir: 0.001, label: 'chick', sleepThreshold: Infinity });
     c.plugin.kind = 'chick';
     Body.setStatic(c, true);
     Composite.add(world, c);
-    G.chick = c; G.abilityUsed = false; G.flyT = 0;
+    G.chick = c; G.abilityUsed = false; G.flyT = 0; G.rollT = 0;
     G.phase = 'aim';
   }
 
@@ -295,10 +295,17 @@ function createGame(M) {
     const p = G.pullVec(), d = Math.hypot(p.x, p.y);
     if (d < 14) { Body.setPosition(G.chick, { x: SLING.x, y: SLING.y }); return false; }
     Body.setStatic(G.chick, false);
+    // a chick that waited on the sling has been put to sleep by the engine: wake it or it never moves
+    Sleeping.set(G.chick, false); G.chick.sleepCounter = 0;
     Body.setVelocity(G.chick, { x: -p.x * POWER, y: -p.y * POWER });
     G.used++; G.phase = 'fly'; G.flyT = 0; G.calmT = 0;
     G.fx.push({ t: 'launch' });
     return true;
+  };
+
+  // abort an in-progress pull (e.g. the OS cancelled the touch): chick snaps back, nothing is fired
+  G.cancelPull = function () {
+    if (G.phase === 'aim' && G.chick) Body.setPosition(G.chick, { x: SLING.x, y: SLING.y });
   };
 
   G.ability = function () {
@@ -343,14 +350,17 @@ function createGame(M) {
       const c = G.chick; G.flyT++;
       const out = c.position.x > 1100 || c.position.x < -200 || c.position.y > 400;
       if (c.speed < 0.22) G.calmT++; else G.calmT = 0;
-      if (out || G.calmT > 50 || G.flyT > 720) {
+      // retire the chick once it has stopped, is rolling slowly on the ground, or has flown ~4s
+      const rolling = c.position.y > -CHICK_R - 3 && c.speed < 1.2 && G.flyT > 40;
+      if (out || G.calmT > 40 || (rolling && (G.rollT = (G.rollT || 0) + 1) > 45) || G.flyT > 240) {
+        G.rollT = 0;
         Composite.remove(world, c); G.fx.push({ t: 'chickgone', x: c.position.x, y: c.position.y });
         G.chick = null; G.phase = 'settle'; G.settleT = 0;
       }
     } else if (G.phase === 'settle') {
       G.settleT++;
       const calm = maxMotion() < 0.25;
-      if ((calm && G.settleT > 50) || G.settleT > 420) {
+      if ((calm && G.settleT > 30) || G.settleT > 150) {
         if (G.slimesLeft() === 0) { G.finish(true); }
         else if (G.queue.length === 0) { G.finish(false); }
         else spawnChick();
@@ -689,12 +699,14 @@ cv.addEventListener('pointerdown', e => {
   e.preventDefault();
   const p = toPhys(e);
   if (G.phase === 'aim' && G.chick) {
-    if (Math.hypot(p.x - SLING.x, p.y - SLING.y) < 90) { pulling = true; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); G.setPull(p.x, p.y); }
+    if (Math.hypot(p.x - SLING.x, p.y - SLING.y) < 140 || (p.x < SLING.x + 60 && p.y > SLING.y - 150 && p.y < 0)) { pulling = true; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); G.setPull(p.x, p.y); }
   } else if (G.phase === 'fly') G.ability();
 });
 cv.addEventListener('pointermove', e => { if (!pulling) return; e.preventDefault(); const p = toPhys(e); G.setPull(p.x, p.y); });
 function endPull(e) { if (!pulling) return; pulling = false; G.release(); updateHud(); }
-cv.addEventListener('pointerup', endPull); cv.addEventListener('pointercancel', endPull);
+function abortPull() { if (!pulling) return; pulling = false; G.cancelPull(); }
+cv.addEventListener('pointerup', endPull); cv.addEventListener('pointercancel', abortPull);
+window.addEventListener('blur', abortPull);
 window.addEventListener('keydown', e => { if (e.code === 'Space') { audioInit(); G.ability(); e.preventDefault(); } });
 
 /* ---------- UI flow ---------- */
