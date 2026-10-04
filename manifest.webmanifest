@@ -1,4 +1,5 @@
 {
+  "id": "mega-arcade-kids",
   "name": "Mega Arcade Kids",
   "short_name": "Arcade Kids",
   "description": "A kids arcade full of fun games to tap and play.",
@@ -8,6 +9,12 @@
   "orientation": "any",
   "background_color": "#291258",
   "theme_color": "#0d0520",
+  "lang": "en",
+  "categories": [
+    "games",
+    "kids",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -27,12 +34,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "id": "./",
-  "lang": "en",
-  "categories": [
-    "games",
-    "kids",
-    "entertainment"
   ]
 }

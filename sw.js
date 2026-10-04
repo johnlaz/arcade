@@ -2,8 +2,10 @@
    - Pre-caches the arcade, every game and the icons so it works offline.
    - HTML/JS use "stale-while-revalidate": you see the cached copy instantly and the
      newest version is fetched in the background, so updates arrive on the next open.
-   - To force everyone onto a fresh cache after a big change, bump VERSION. */
-const VERSION = 'arcade-v2';
+   - To force everyone onto a fresh cache after a big change, bump VERSION.
+   - Only caches starting with "arcade-kids-" are ever deleted (other apps on this domain are untouched). */
+const PREFIX = 'arcade-kids-';
+const VERSION = PREFIX + 'v3';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
@@ -50,17 +52,19 @@ const GAMES = [
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await cache.addAll(CORE);                                   // must succeed
-    // games are cached one by one so a single missing file can't break the install
-    await Promise.allSettled(GAMES.map(g => cache.add(new Request(g, { cache: 'reload' }))));
+    // Everything is cached one file at a time: a missing file must never block the install.
+    await Promise.allSettled(CORE.concat(GAMES).map(u => cache.add(new Request(u, { cache: 'reload' }))));
     await self.skipWaiting();
   })());
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
+    // Cache Storage is shared by EVERY app on johnlaz.github.io, so only ever touch our own caches.
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)));
+    await Promise.all(keys
+      .filter(k => (k.startsWith(PREFIX) || /^arcade-v\d+$/.test(k)) && k !== VERSION)
+      .map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
