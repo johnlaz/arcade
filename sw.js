@@ -3,7 +3,7 @@
    - HTML/JS use "stale-while-revalidate": you see the cached copy instantly and the
      newest version is fetched in the background, so updates arrive on the next open.
    - To force everyone onto a fresh cache after a big change, bump VERSION. */
-const VERSION = 'arcade-v1';
+const VERSION = 'arcade-v2';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
