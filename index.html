@@ -3,6 +3,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>✨ Kids Arcade!</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0d0520">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Nunito:wght@700;800;900&amp;display=swap" rel="stylesheet">
 <style>
 :root {
@@ -69,13 +72,10 @@ header {
 }
 .home-btn:active { background: rgba(255,255,255,.2); }
 
-.header-sparkles {
-  font-size: clamp(1.8rem, 6vw, 2.4rem);
-  animation: sparkSpin 4s ease-in-out infinite;
-}
-@keyframes sparkSpin {
-  0%,100% { transform: rotate(-8deg) scale(1); }
-  50%      { transform: rotate(8deg) scale(1.1); }
+.arcade-logo {
+  width: clamp(88px, 26vw, 112px); height: auto;
+  border-radius: 24%;
+  filter: drop-shadow(0 6px 22px rgba(199,125,255,.5));
 }
 
 h1 {
@@ -217,10 +217,10 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
 
 <header>
   <a href="https://johnlaz.github.io/cathyshood/" class="home-btn">🏠</a>
-  <div class="header-sparkles">✨</div>
+  <img class="arcade-logo" src="icon-192.png" alt="Mega Arcade Kids" width="112" height="112">
   <h1>Kids Arcade!</h1>
   <div class="subtitle">Tap a game and start playing!</div>
-  <div class="game-count">32 games to explore ✨</div>
+  <div class="game-count">34 games to explore ✨</div>
 </header>
 
 <div class="page">
@@ -320,7 +320,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
       <div class="section-icon">🏃</div>
       <div class="section-title">Action &amp; Reflex</div>
       <div class="section-line"></div>
-      <div class="section-count">10 games</div>
+      <div class="section-count">12 games</div>
     </div>
     <div class="grid">
 
@@ -392,6 +392,20 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
         <div class="card-emoji">🍦</div>
         <div class="card-name">Scoop Rush!</div>
         <div class="card-desc">Serve ice cream before time runs out!</div>
+      </a>
+
+      <a class="card action" href="clawmaster.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🧸</div>
+        <div class="card-name">Claw Master!</div>
+        <div class="card-desc">Grab prizes &amp; win the crown!</div>
+      </a>
+
+      <a class="card action" href="chickfling.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🐥</div>
+        <div class="card-name">Chick Fling!</div>
+        <div class="card-desc">Sling chicks &amp; pop the slimes!</div>
       </a>
 
     </div>
@@ -545,7 +559,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
 
 <footer>
   <a href="https://johnlaz.github.io/cathyshood/">🏠 Back to Cathy's Neighborhood</a>
-  &nbsp;·&nbsp; 31 games &nbsp;·&nbsp; ✨ More coming soon!
+  &nbsp;·&nbsp; 34 games &nbsp;·&nbsp; ✨ More coming soon!
 </footer>
 
 

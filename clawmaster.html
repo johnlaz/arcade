@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0520">
+<title>🧸 Claw Master!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Nunito:wght@700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0520; --gold:#FFD700; --pink:#FF6B9D; --cyan:#00E5FF; --purple:#C77DFF;
+  --font-title:'Fredoka One','Baloo 2',ui-rounded,system-ui,cursive; --font-body:'Nunito',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;color:#fff;font-family:var(--font-body);overflow:hidden;overscroll-behavior:none;background:var(--bg)}
+body{background-image:radial-gradient(ellipse at 15% 10%,rgba(199,125,255,.22),transparent 55%),radial-gradient(ellipse at 85% 90%,rgba(255,107,157,.2),transparent 55%)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#hud{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#1a0a36,#120628);border-bottom:2px solid rgba(255,255,255,.1)}
+.hbtn{width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#d9ccff;font-size:1.15rem;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;font-family:var(--font-title);flex:none}
+.hbtn:active{background:rgba(255,255,255,.25);transform:scale(.94)}
+#tries{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-family:var(--font-title);font-size:.62rem;color:rgba(199,184,255,.75)}
+#dots{display:flex;gap:4px;flex-wrap:wrap;min-height:14px}
+#dots i{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd1ea,#ff4fa8 60%,#c21e7a);box-shadow:0 0 6px rgba(255,79,168,.6)}
+#dots i.used{background:rgba(255,255,255,.12);box-shadow:none}
+#score{font-family:var(--font-title);font-size:clamp(1rem,4.4vw,1.3rem);color:var(--gold);min-width:56px;text-align:right;text-shadow:0 0 12px rgba(255,215,0,.35)}
+#stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+#cv{display:block;touch-action:none;filter:drop-shadow(0 10px 30px rgba(255,79,168,.35))}
+#bar{flex:none;padding:6px 12px 12px;display:flex;flex-direction:column;gap:8px;align-items:center}
+#tray{width:100%;max-width:420px;height:34px;border-radius:17px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:2px;padding:0 10px;overflow-x:auto;font-size:1.2rem;white-space:nowrap;scrollbar-width:none}
+#tray::-webkit-scrollbar{display:none}
+#tray span.hint{font-family:var(--font-body);font-weight:800;font-size:.68rem;color:rgba(199,184,255,.55)}
+#ctrl{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;max-width:420px}
+.pad{width:72px;height:72px;border-radius:50%;border:3px solid #fff3;background:radial-gradient(circle at 35% 30%,#8e6cff,#5b2fb8 70%);color:#fff;font-size:1.8rem;box-shadow:0 6px 0 #2c1466,0 10px 18px rgba(0,0,0,.4);cursor:pointer;touch-action:none;flex:none}
+.pad:active,.pad.on{transform:translateY(4px);box-shadow:0 2px 0 #2c1466}
+#grab{flex:1;max-width:190px;height:72px;border-radius:36px;border:3px solid #fff4;background:radial-gradient(ellipse at 40% 25%,#ff9ec8,#ff3f93 55%,#c4156f);color:#fff;font-family:var(--font-title);font-size:1.7rem;letter-spacing:.03em;text-shadow:0 2px 0 rgba(0,0,0,.3);box-shadow:0 7px 0 #7d0a45,0 12px 20px rgba(0,0,0,.4);cursor:pointer;touch-action:none}
+#grab:active{transform:translateY(5px);box-shadow:0 2px 0 #7d0a45}
+#grab:disabled,.pad:disabled{filter:grayscale(.7) brightness(.7)}
+
+.overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(13,5,32,.82);backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+.panel{width:100%;max-width:380px;text-align:center;padding:20px 18px 18px;border-radius:26px;background:linear-gradient(160deg,#3a1170,#1b0a40);border:2px solid rgba(255,255,255,.16);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.logo{font-family:var(--font-title);font-size:clamp(2rem,10vw,2.9rem);line-height:1;color:#ffe45e;-webkit-text-stroke:2px #7a2cc9;paint-order:stroke fill;text-shadow:0 4px 0 #7a2cc9,0 8px 18px rgba(0,0,0,.4)}
+.logo span{display:block;color:#ff8fc4;font-size:.9em}
+.how{margin:14px 0 4px;text-align:left;font-weight:800;font-size:.9rem;line-height:1.5;color:rgba(235,225,255,.92)}
+.how div{display:flex;gap:10px;align-items:center;padding:3px 0}
+.how b{font-size:1.4rem;width:1.8rem;text-align:center}
+.btn{font-family:var(--font-title);font-size:1.15rem;padding:12px 24px;border-radius:30px;border:none;color:#fff;cursor:pointer;background:linear-gradient(135deg,#ff6b9d,#c77dff);box-shadow:0 5px 0 rgba(0,0,0,.3);margin:6px 4px 0}
+.btn.alt{background:rgba(255,255,255,.14);box-shadow:none;border:1.5px solid rgba(255,255,255,.2);text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(2px) scale(.97)}
+.big{font-family:var(--font-title);font-size:2rem;color:var(--gold);text-shadow:0 3px 0 #7a2cc9}
+#won{font-size:1.7rem;margin:8px 0;min-height:2.2rem;line-height:1.3;word-break:break-all}
+.sc{font-family:var(--font-title);font-size:1.15rem}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <a class="hbtn" href="index.html" aria-label="Back to arcade">←</a>
+    <div id="tries">Claws left<div id="dots"></div></div>
+    <div id="score">0</div>
+    <button class="hbtn" id="snd" aria-label="Sound">🔊</button>
+  </div>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div class="overlay show" id="ovStart">
+      <div class="panel">
+        <div class="logo">CLAW<span>MASTER!</span></div>
+        <div class="how">
+          <div><b>👈</b> Slide the claw over a prize</div>
+          <div><b>🔴</b> Press GRAB to drop the claw</div>
+          <div><b>🧸</b> Carry it to the chute (left side)</div>
+          <div><b>👑</b> Grab the crown for bonus claws!</div>
+        </div>
+        <button class="btn" id="play">Play!</button>
+        <a class="btn alt" href="index.html">🏠 Arcade</a>
+      </div>
+    </div>
+    <div class="overlay" id="ovEnd">
+      <div class="panel">
+        <div class="big" id="endT">Great Job!</div>
+        <div id="won"></div>
+        <div class="sc" id="endS"></div>
+        <button class="btn" id="again">Play again</button>
+        <a class="btn alt" href="index.html">🏠 Arcade</a>
+      </div>
+    </div>
+  </div>
+  <div id="bar">
+    <div id="tray"><span class="hint">Your prizes show up here ✨</span></div>
+    <div id="ctrl">
+      <button class="pad" id="bL" aria-label="Move left">◀</button>
+      <button id="grab">GRAB!</button>
+      <button class="pad" id="bR" aria-label="Move right">▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const store = (() => {
+  const K = 'clawmaster_v1'; let d = { best: 0, mute: false };
+  try { d = Object.assign(d, JSON.parse(localStorage.getItem(K) || '{}')); } catch (e) {}
+  return { d, save() { try { localStorage.setItem(K, JSON.stringify(d)); } catch (e) {} } };
+})();
+
+/* ---------- constants ---------- */
+const W = 360, H = 430;
+const FLOOR = 386, WALL_L = 104, WALL_R = 336;
+const CHUTE_X = 58, HOLE_Y = 346;
+const RAIL_Y = 70, CY_TOP = 90, PRONG = 46, CX_MIN = 42, CX_MAX = 322, HOME_X = 215;
+const GRAV = .38, START_TRIES = 8;
+const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const TITLE = '"Fredoka One",ui-rounded,system-ui,sans-serif';
+const TYPES = [
+  { e: '🧸', n: 'Teddy', pts: 10, r: 24, slip: .10 },
+  { e: '🐰', n: 'Bunny', pts: 10, r: 23, slip: .10 },
+  { e: '🐸', n: 'Froggy', pts: 10, r: 22, slip: .10 },
+  { e: '🐼', n: 'Panda', pts: 15, r: 24, slip: .14 },
+  { e: '🐙', n: 'Octo', pts: 15, r: 23, slip: .14 },
+  { e: '🐱', n: 'Kitty', pts: 10, r: 22, slip: .10 },
+  { e: '🐷', n: 'Piggy', pts: 10, r: 23, slip: .10 },
+  { e: '🐥', n: 'Chick', pts: 10, r: 21, slip: .10 },
+  { e: '🦄', n: 'Unicorn', pts: 25, r: 25, slip: .26 }
+];
+const CROWN = { e: '👑', n: 'Crown', pts: 50, r: 21, slip: .38, bonus: 2 };
+
+/* ---------- state ---------- */
+let pile = [], pid = 0, fx = [], toast = null, tray = [];
+let score = 0, tries = START_TRIES, playing = false, ended = false;
+let cx = HOME_X, cy = CY_TOP, open = 1, cs = 'idle', ct = 0, held = null, slipAt = -1, sway = 0, missed = false;
+let dir = 0, target = null, T = 0;
+
+/* ---------- audio ---------- */
+let AC = null, master = null;
+function audioInit() {
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = store.d.mute ? 0 : .5; master.connect(AC.destination); } catch (e) { AC = null; }
+}
+function tone(f0, f1, dur, type, vol, delay) {
+  if (!AC) return; const t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+  g.gain.setValueAtTime(vol || .25, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .02);
+}
+const SFX = {
+  go() { tone(300, 900, .12, 'square', .12); },
+  down() { tone(520, 220, .9, 'sawtooth', .07); },
+  clamp() { tone(180, 120, .1, 'square', .2); tone(240, 160, .08, 'square', .15, .05); },
+  up() { tone(220, 520, .9, 'sawtooth', .06); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.01, .2, 'triangle', .26, i * .09)); },
+  big() { [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f * 1.01, .22, 'triangle', .28, i * .08)); },
+  miss() { tone(400, 200, .3, 'triangle', .22); },
+  slip() { tone(500, 120, .35, 'sawtooth', .15); },
+  end() { [392, 330, 262, 196].forEach((f, i) => tone(f, f * .99, .22, 'triangle', .22, i * .14)); }
+};
+$('snd').textContent = store.d.mute ? '🔇' : '🔊';
+$('snd').onclick = () => { audioInit(); store.d.mute = !store.d.mute; if (master) master.gain.value = store.d.mute ? 0 : .5; $('snd').textContent = store.d.mute ? '🔇' : '🔊'; store.save(); };
+
+/* ---------- prizes + pile physics ---------- */
+function addPrize(type, x, y) {
+  const p = { id: pid++, t: type, r: type.r, x, y, vx: 0, vy: 0, st: 'pile', tilt: (((pid * 37) % 11) - 5) * .035, sc: 1, al: 1, rest: 0, sleep: false };
+  pile.push(p); return p;
+}
+function randType() { return TYPES[Math.floor(Math.random() * TYPES.length)]; }
+function physStep() {
+  const ps = pile.filter(p => p.st === 'pile');
+  for (const p of ps) { if (p.sleep) continue; p.vy += GRAV; p.vx *= .996; p.x += p.vx; p.y += p.vy; }
+  for (let it = 0; it < 5; it++) {
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
+      const a = ps[i], b = ps[j], dx = b.x - a.x, dy = b.y - a.y, R = a.r + b.r, d2 = dx * dx + dy * dy;
+      if (d2 < R * R && d2 > .0001) {
+        const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, pen = (R - d) * .85, ma = a.r * a.r, mb = b.r * b.r, mt = ma + mb;
+        a.x -= nx * pen * mb / mt; a.y -= ny * pen * mb / mt; b.x += nx * pen * ma / mt; b.y += ny * pen * ma / mt;
+        const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (rv < 0) {
+          if (-rv > .8) { a.sleep = b.sleep = false; a.rest = b.rest = 0; }
+          const jn = -(1.08) * rv / (1 / ma + 1 / mb);
+          a.vx -= jn * nx / ma; a.vy -= jn * ny / ma; b.vx += jn * nx / mb; b.vy += jn * ny / mb;
+          const tx = -ny, ty = nx, rt = (b.vx - a.vx) * tx + (b.vy - a.vy) * ty, f = rt * .2;
+          a.vx += f * tx * mb / mt; a.vy += f * ty * mb / mt; b.vx -= f * tx * ma / mt; b.vy -= f * ty * ma / mt;
+        }
+      }
+    }
+    for (const p of ps) {
+      if (p.y + p.r > FLOOR) { p.y = FLOOR - p.r; if (p.vy > 1) p.vy *= -.15; else p.vy = 0; p.vx *= .9; }
+      if (p.x - p.r < WALL_L) { p.x = WALL_L + p.r; p.vx = Math.abs(p.vx) * .2; }
+      if (p.x + p.r > WALL_R) { p.x = WALL_R - p.r; p.vx = -Math.abs(p.vx) * .2; }
+    }
+  }
+  for (const p of ps) {
+    if (p.sleep) continue;
+    if (Math.hypot(p.vx, p.vy) < .6) { if (++p.rest > 12) { p.sleep = true; p.vx = 0; p.vy = 0; } } else p.rest = 0;
+  }
+}
+function wakeAll() { for (const p of pile) { p.sleep = false; p.rest = 0; } }
+function buildPile() {
+  pile = []; pid = 0;
+  for (let i = 0; i < 17; i++) addPrize(randType(), WALL_L + 24 + (i % 5) * 46 + Math.random() * 6, FLOOR - 30 - Math.floor(i / 5) * 52 - Math.random() * 6);
+  addPrize(CROWN, 235 + Math.random() * 30, 230);
+  for (let s = 0; s < 500; s++) physStep();
+  for (const p of pile) { p.vx = 0; p.vy = 0; }
+}
+function refill() {
+  const n = pile.filter(p => p.st === 'pile').length;
+  if (n >= 13) return;
+  const hasCrown = pile.some(p => p.t === CROWN && p.st !== 'gone');
+  for (let i = 0; i < 15 - n; i++) {
+    const t = (!hasCrown && i === 0 && Math.random() < .5) ? CROWN : randType();
+    addPrize(t, WALL_L + 30 + Math.random() * (WALL_R - WALL_L - 60), 62 - i * 30);
+  }
+}
+
+/* ---------- claw logic ---------- */
+function say(txt, col) { toast = { txt, t: 0, col: col || '#fff' }; }
+function sparkle(x, y, n, cols) {
+  cols = cols || ['#ffe45e', '#ff8fc4', '#8fe3ff'];
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 3.5; fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1.5, life: 40 + Math.random() * 20, max: 60, size: 4 + Math.random() * 4, col: cols[i % cols.length], rot: Math.random() * 6 }); }
+}
+function updateHud() {
+  const d = $('dots'); d.innerHTML = '';
+  const total = Math.max(START_TRIES, tries);
+  for (let i = 0; i < total; i++) { const e = document.createElement('i'); if (i >= tries) e.className = 'used'; d.appendChild(e); }
+  $('score').textContent = score;
+}
+function grab() {
+  if (!playing || cs !== 'idle' || tries <= 0) return;
+  audioInit(); tries--; updateHud();
+  cs = 'drop'; ct = 0; open = 1; held = null; missed = false; SFX.down(); target = null;
+}
+function decideGrab() {
+  const tip = cy + PRONG;
+  let best = null, bd = 1e9;
+  for (const p of pile) {
+    if (p.st !== 'pile') continue;
+    const dx = Math.abs(p.x - cx);
+    if (dx < p.r + 16 && p.y - p.r < tip && dx < bd) { best = p; bd = dx; }
+  }
+  held = null;
+  if (best) {
+    const q = 1 - bd / (best.r + 16);
+    if (q > .18) {
+      held = best; best.st = 'held'; wakeAll();
+      const slipP = Math.min(.9, best.t.slip + (1 - q) * .3);
+      slipAt = Math.random() < slipP ? 10 + Math.floor(Math.random() * 90) : -1;
+    }
+  }
+  missed = !held;
+}
+function clawStep() {
+  T++;
+  switch (cs) {
+    case 'idle': {
+      if (!playing) break;
+      let mv = 0;
+      if (dir) { mv = dir * 2.9; target = null; }
+      else if (target != null) { const d = target - cx; mv = Math.abs(d) < 3 ? 0 : Math.sign(d) * Math.min(2.9, Math.abs(d)); if (mv === 0) target = null; }
+      cx = Math.max(CX_MIN, Math.min(CX_MAX, cx + mv));
+      break;
+    }
+    case 'drop': {
+      cy += 3.1; const tip = cy + PRONG;
+      let hit = tip >= FLOOR - 2;
+      for (const p of pile) if (p.st === 'pile' && Math.abs(p.x - cx) < p.r + 14 && tip > p.y - p.r * .45) { hit = true; break; }
+      if (hit) { cs = 'close'; ct = 0; decideGrab(); SFX.clamp(); }
+      break;
+    }
+    case 'close': {
+      ct++; const to = held ? .28 : 0; open = 1 - (1 - to) * Math.min(1, ct / 28);
+      if (held) { held.x = cx; held.y = cy + PRONG - held.r * .55; }
+      if (ct >= 40) { cs = 'rise'; ct = 0; SFX.up(); if (missed) { say('So close!', '#ffe45e'); SFX.miss(); } }
+      break;
+    }
+    case 'rise': {
+      cy -= 2.7; ct++;
+      if (held) { held.x = cx + Math.sin(T * .3) * 1.2; held.y = cy + PRONG - held.r * .55; if (slipAt >= 0 && ct >= slipAt) slip(); }
+      if (cy <= CY_TOP) { cy = CY_TOP; ct = 0; cs = held ? 'return' : 'idle'; }
+      break;
+    }
+    case 'return': {
+      const d = CHUTE_X - cx; cx += Math.sign(d) * Math.min(2.6, Math.abs(d)); ct++;
+      if (held) { held.x = cx + Math.sin(T * .25) * 2; held.y = cy + PRONG - held.r * .55; if (slipAt >= 0 && ct >= slipAt - 20 && cx > 96) slip(); }
+      if (Math.abs(d) < 1) { cs = 'release'; ct = 0; if (held) { held.st = 'drop'; held.vy = 0; } }
+      break;
+    }
+    case 'release': {
+      ct++; open = Math.min(1, open + .06);
+      if (ct > 28) { held = null; cs = 'home'; ct = 0; refill(); }
+      break;
+    }
+    case 'home': {
+      const d = HOME_X - cx; cx += Math.sign(d) * Math.min(3, Math.abs(d)); open = 1;
+      if (Math.abs(d) < 2) { cs = 'idle'; }
+      break;
+    }
+  }
+  if (cs === 'idle' && !held) open = Math.min(1, open + .08);
+  // dropping prizes
+  for (const p of pile) {
+    if (p.st !== 'drop') continue;
+    p.vy += .45; p.y += p.vy; p.x += (CHUTE_X - p.x) * .12;
+    if (p.y > HOLE_Y) { const k = Math.max(0, 1 - (p.y - HOLE_Y) / 34); p.sc = k; p.al = k; if (k <= 0) { p.st = 'gone'; collect(p); } }
+  }
+  pile = pile.filter(p => p.st !== 'gone');
+  physStep();
+  // end of game check
+  if (playing && tries <= 0 && cs === 'idle' && !pile.some(p => p.st === 'drop') && !ended) { ended = true; setTimeout(endGame, 700); }
+}
+function slip() {
+  const p = held; held = null; slipAt = -1; p.vx = 0; p.vy = 0; open = .85; SFX.slip(); wakeAll();
+  if (p.x < 92) { p.st = 'drop'; } else { p.st = 'pile'; p.x = Math.max(p.x, WALL_L + p.r); say('Oh no — slipped!', '#ff8fc4'); }
+  if (cs === 'return') cs = 'idle';
+}
+function collect(p) {
+  score += p.t.pts; tray.push(p.t.e);
+  if (p.t.bonus) { tries += p.t.bonus; say('👑 CROWN! +2 claws!', '#ffe45e'); SFX.big(); sparkle(CHUTE_X, HOLE_Y, 34); }
+  else { say(`${p.t.n}! +${p.t.pts}`, '#fff'); SFX.win(); sparkle(CHUTE_X, HOLE_Y, 16); }
+  const tr = $('tray'); tr.innerHTML = tray.map(e => `<span>${e}</span>`).join(''); tr.scrollLeft = tr.scrollWidth;
+  updateHud();
+}
+
+/* ---------- drawing ---------- */
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function drawCabinet() {
+  // body
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ff8ed0'); g.addColorStop(.5, '#ff5db6'); g.addColorStop(1, '#d93a98');
+  ctx.fillStyle = g; rr(2, 2, W - 4, H - 4, 26); ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = '#a4126b'; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.28)'; rr(10, 8, W - 20, 6, 3); ctx.fill();
+  // marquee
+  ctx.fillStyle = '#4b1f9c'; rr(18, 10, W - 36, 44, 14); ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = '#ffd35c'; ctx.stroke();
+  for (let i = 0; i < 14; i++) {
+    const bx = 30 + i * ((W - 60) / 13), on = (Math.floor(T / 24) + i) % 2 === 0;
+    ctx.fillStyle = on ? '#fff3a0' : '#c89a2e'; ctx.beginPath(); ctx.arc(bx, 14, 2.4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(bx, 50, 2.4, 0, 7); ctx.fill();
+  }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `30px ${TITLE}`;
+  ctx.lineJoin = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#7a2cc9'; ctx.strokeText('CLAW MASTER', W / 2, 33);
+  const tg = ctx.createLinearGradient(0, 20, 0, 46); tg.addColorStop(0, '#fff07a'); tg.addColorStop(1, '#ffa42c');
+  ctx.fillStyle = tg; ctx.fillText('CLAW MASTER', W / 2, 33);
+  // glass window interior
+  ctx.save(); rr(18, 60, W - 36, 340, 14); ctx.clip();
+  const ig = ctx.createLinearGradient(0, 60, 0, FLOOR); ig.addColorStop(0, '#b9e8ff'); ig.addColorStop(1, '#f1fbff');
+  ctx.fillStyle = ig; ctx.fillRect(18, 60, W - 36, 340);
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.arc(30 + (i * 53) % 300, 80 + (i * 37) % 250, 2 + (i % 3), 0, 7); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255,200,230,.35)'; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(60 + i * 62, 150 + (i % 2) * 70, 26, 0, 7); ctx.fill(); }
+  // floor checker
+  for (let x = 18, i = 0; x < W - 18; x += 20, i++) { ctx.fillStyle = i % 2 ? '#ffd1ea' : '#fff'; ctx.fillRect(x, FLOOR, 20, 14); }
+  ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(18, FLOOR, W - 36, 3);
+  ctx.restore();
+  // rail
+  ctx.fillStyle = '#7f6bb8'; rr(24, RAIL_Y - 5, W - 48, 10, 5); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(28, RAIL_Y - 3, W - 56, 2);
+}
+function drawChute() {
+  // pillar box
+  const g = ctx.createLinearGradient(0, HOLE_Y - 6, 0, FLOOR); g.addColorStop(0, '#ff7ac8'); g.addColorStop(1, '#d93a98');
+  ctx.fillStyle = g; rr(20, HOLE_Y - 4, 80, FLOOR - HOLE_Y + 14, 8); ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = '#a4126b'; ctx.stroke();
+  ctx.fillStyle = '#2a0f55'; ctx.beginPath(); ctx.ellipse(CHUTE_X + 2, HOLE_Y - 2, 32, 8, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#ffd35c'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = `13px ${TITLE}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('PRIZE', CHUTE_X + 2, HOLE_Y + 22);
+  ctx.fillStyle = '#ffe45e'; ctx.font = '13px sans-serif'; ctx.fillText('▼', CHUTE_X + 2, HOLE_Y + 38 + Math.sin(T * .1) * 1.5);
+}
+function drawPrize(p) {
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.tilt); ctx.globalAlpha = p.al; ctx.scale(p.sc, p.sc);
+  if (p.t === CROWN) { ctx.fillStyle = `rgba(255,240,150,${.35 + Math.sin(T * .12) * .15})`; ctx.beginPath(); ctx.arc(0, 0, p.r + 7, 0, 7); ctx.fill(); }
+  ctx.font = `${Math.round(p.r * 2)}px ${EMO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(p.t.e, 0, 2);
+  ctx.restore();
+}
+function drawClaw() {
+  // cable + carriage
+  ctx.fillStyle = '#5b2fb8'; rr(cx - 17, RAIL_Y - 9, 34, 18, 6); ctx.fill(); ctx.strokeStyle = '#2c1466'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#ffd35c'; ctx.beginPath(); ctx.arc(cx, RAIL_Y, 3, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#3a2a6a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, RAIL_Y + 8); ctx.lineTo(cx, cy - 8); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx - 1, RAIL_Y + 8); ctx.lineTo(cx - 1, cy - 8); ctx.stroke();
+  // head
+  const hg = ctx.createRadialGradient(cx - 4, cy - 4, 2, cx, cy, 13); hg.addColorStop(0, '#ffc2e6'); hg.addColorStop(.6, '#ff4fb0'); hg.addColorStop(1, '#b8126e');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, 7); ctx.fill(); ctx.strokeStyle = '#7d0a45'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#8f90b8'; rr(cx - 11, cy + 6, 22, 8, 3); ctx.fill(); ctx.strokeStyle = '#4a4c78'; ctx.stroke();
+  // prongs (side view: two) — open: 0 closed .. 1 wide
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const s of [-1, 1]) {
+    const ex = cx + s * (9 + 12 * open), ey = cy + 26;
+    const tx = cx + s * (3 + 24 * open), ty = cy + PRONG - 2 - (1 - open) * 0;
+    ctx.beginPath(); ctx.moveTo(cx + s * 7, cy + 12); ctx.lineTo(ex, ey); ctx.lineTo(tx, ty);
+    ctx.strokeStyle = '#4a4c78'; ctx.lineWidth = 8; ctx.stroke();
+    ctx.strokeStyle = '#c3c5ea'; ctx.lineWidth = 5; ctx.stroke();
+  }
+}
+function drawGlass() {
+  ctx.save(); rr(18, 60, W - 36, 340, 14); ctx.clip();
+  ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.beginPath(); ctx.moveTo(60, 60); ctx.lineTo(120, 60); ctx.lineTo(50, 400); ctx.lineTo(18, 400); ctx.lineTo(18, 200); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.moveTo(150, 60); ctx.lineTo(176, 60); ctx.lineTo(96, 400); ctx.lineTo(80, 400); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = '#a4126b'; ctx.lineWidth = 4; rr(18, 60, W - 36, 340, 14); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.5; rr(21, 63, W - 42, 334, 12); ctx.stroke();
+  // base panel
+  ctx.fillStyle = 'rgba(122,10,75,.35)'; rr(30, 405, W - 60, 14, 7); ctx.fill();
+  ctx.fillStyle = '#ffd35c'; ctx.beginPath(); ctx.arc(W - 48, 412, 4, 0, 7); ctx.arc(W - 64, 412, 4, 0, 7); ctx.fill();
+}
+function render() {
+  ctx.setTransform(S * DPR, 0, 0, S * DPR, 0, 0); ctx.clearRect(0, 0, W, H);
+  drawCabinet(); drawChute();
+  const vis = pile.filter(p => p.st !== 'held').sort((a, b) => a.y - b.y);
+  ctx.save(); rr(18, 60, W - 36, 340, 14); ctx.clip();
+  for (const p of vis) drawPrize(p);
+  // aiming guide when idle: faint line to floor
+  if (cs === 'idle' && playing) { ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(255,79,168,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cy + PRONG); ctx.lineTo(cx, FLOOR); ctx.stroke(); ctx.setLineDash([]); }
+  if (held && held.st === 'held') drawPrize(held);
+  drawClaw();
+  // sparkles
+  for (const f of fx) { ctx.globalAlpha = Math.max(0, f.life / f.max); ctx.fillStyle = f.col; ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot); ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, r = i % 2 ? f.size * .4 : f.size; ctx[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.restore(); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  drawGlass();
+  if (toast) {
+    const a = toast.t < 8 ? toast.t / 8 : Math.max(0, 1 - (toast.t - 60) / 20);
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(W / 2, 112 - Math.min(toast.t, 10) * .6); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `22px ${TITLE}`;
+    const tw = ctx.measureText(toast.txt).width + 30; ctx.fillStyle = 'rgba(43,15,85,.85)'; rr(-tw / 2, -18, tw, 36, 18); ctx.fill();
+    ctx.fillStyle = toast.col; ctx.fillText(toast.txt, 0, 1); ctx.restore();
+  }
+}
+
+/* ---------- layout ---------- */
+let S = 1, DPR = 1;
+function resize() {
+  const st = $('stage'), aw = st.clientWidth - 8, ah = st.clientHeight - 8;
+  S = Math.max(.4, Math.min(aw / W, ah / H, 1.6)); DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.style.width = Math.round(W * S) + 'px'; cv.style.height = Math.round(H * S) + 'px';
+  cv.width = Math.round(W * S * DPR); cv.height = Math.round(H * S * DPR);
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+
+/* ---------- input ---------- */
+function bindHold(id, d) {
+  const b = $(id);
+  const on = e => { e.preventDefault(); audioInit(); dir = d; b.classList.add('on'); if (b.setPointerCapture) { try { b.setPointerCapture(e.pointerId); } catch (x) {} } };
+  const off = () => { if (dir === d) dir = 0; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+}
+bindHold('bL', -1); bindHold('bR', 1);
+$('grab').addEventListener('pointerdown', e => { e.preventDefault(); grab(); });
+function canvasX(e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / S; }
+cv.addEventListener('pointerdown', e => { audioInit(); if (!playing) return; e.preventDefault(); if (cs === 'idle') target = Math.max(CX_MIN, Math.min(CX_MAX, canvasX(e))); try { cv.setPointerCapture(e.pointerId); } catch (x) {} });
+cv.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') { if (cs === 'idle' && playing) target = Math.max(CX_MIN, Math.min(CX_MAX, canvasX(e))); } });
+const keys = {};
+window.addEventListener('keydown', e => {
+  if (e.repeat && (e.code === 'Space' || e.code === 'Enter')) return;
+  if (e.code === 'ArrowLeft') { dir = -1; e.preventDefault(); } else if (e.code === 'ArrowRight') { dir = 1; e.preventDefault(); }
+  else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowDown') { audioInit(); grab(); e.preventDefault(); }
+});
+window.addEventListener('keyup', e => { if ((e.code === 'ArrowLeft' && dir === -1) || (e.code === 'ArrowRight' && dir === 1)) dir = 0; });
+
+/* ---------- flow ---------- */
+function newGame() {
+  score = 0; tries = START_TRIES; tray = []; fx = []; toast = null; ended = false;
+  cx = HOME_X; cy = CY_TOP; open = 1; cs = 'idle'; held = null; target = null;
+  buildPile(); $('tray').innerHTML = '<span class="hint">Your prizes show up here ✨</span>';
+  updateHud(); playing = true;
+  $('ovStart').classList.remove('show'); $('ovEnd').classList.remove('show');
+}
+function endGame() {
+  playing = false; SFX.end();
+  const newBest = score > store.d.best; if (newBest) { store.d.best = score; store.save(); }
+  $('endT').textContent = tray.length ? 'Great Job!' : 'Nice Try!';
+  $('won').textContent = tray.length ? tray.join('') : '🧸 ?';
+  $('endS').textContent = `Score ${score}` + (newBest && score > 0 ? '  ·  New best!' : `  ·  Best ${store.d.best}`);
+  $('ovEnd').classList.add('show');
+}
+$('play').onclick = () => { audioInit(); newGame(); };
+$('again').onclick = () => { audioInit(); newGame(); };
+
+let last = performance.now(), acc = 0;
+function frame(now) {
+  const dt = Math.min(100, now - last); last = now;
+  if (!document.hidden) { acc += dt; let n = 0; while (acc >= 1000 / 60 && n < 5) { clawStep(); acc -= 1000 / 60; n++; } if (n === 5) acc = 0; } else acc = 0;
+  for (let i = fx.length - 1; i >= 0; i--) { const f = fx[i]; f.x += f.vx; f.y += f.vy; f.vy += .12; f.rot += .1; if (--f.life <= 0) fx.splice(i, 1); }
+  if (toast && ++toast.t > 80) toast = null;
+  render();
+  requestAnimationFrame(frame);
+}
+resize(); buildPile(); updateHud();
+requestAnimationFrame(frame);
+window.__claw = { step: clawStep, get state() { return { cs, cx, cy, tries, score, pile, playing, held }; }, grab, newGame, setX(x) { cx = x; }, physStep, stats() { const ps = pile.filter(p => p.st === 'pile'); return { n: ps.length, maxSpeed: Math.max(0, ...ps.map(p => Math.hypot(p.vx, p.vy))), topY: Math.min(...ps.map(p => p.y - p.r)) }; } };
+})();
+</script>
+</body></html>
