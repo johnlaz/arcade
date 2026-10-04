@@ -3,9 +3,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>✨ Kids Arcade!</title>
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0d0520">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Arcade Kids">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="application-name" content="Mega Arcade Kids">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Nunito:wght@700;800;900&amp;display=swap" rel="stylesheet">
 <style>
 :root {
@@ -72,11 +79,16 @@ header {
 }
 .home-btn:active { background: rgba(255,255,255,.2); }
 
-.arcade-logo {
-  width: clamp(88px, 26vw, 112px); height: auto;
-  border-radius: 24%;
-  filter: drop-shadow(0 6px 22px rgba(199,125,255,.5));
+.hero-icon {
+  width: clamp(76px, 22vw, 104px); height: auto;
+  filter: drop-shadow(0 6px 18px rgba(199,125,255,.45));
+  animation: iconBob 4s ease-in-out infinite;
 }
+@keyframes iconBob {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-4px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-icon { animation: none; } }
 
 h1 {
   font-family: var(--font-title);
@@ -204,6 +216,22 @@ h1 {
   background: linear-gradient(90deg, transparent, rgba(199,184,255,.15), transparent);
 }
 
+.install-btn {
+  display: none; margin-top: 6px;
+  font-family: var(--font-title); font-size: .85rem; color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, var(--green), #1fd1a5); color: #052b1a;
+  border: none; border-radius: 20px; padding: 7px 18px;
+  box-shadow: 0 4px 0 rgba(0,0,0,.3);
+}
+.install-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.install-btn.show { display: inline-block; }
+.install-tip {
+  display: none; max-width: 320px; margin-top: 8px; padding: 8px 14px; text-align: center;
+  font-size: .72rem; font-weight: 800; line-height: 1.4; color: rgba(225,214,255,.9);
+  background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.15); border-radius: 14px;
+}
+.install-tip.show { display: block; }
+
 footer {
   text-align: center; padding: 20px 0 32px;
   font-size: .65rem; color: rgba(255,255,255,.2);
@@ -217,10 +245,12 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
 
 <header>
   <a href="https://johnlaz.github.io/cathyshood/" class="home-btn">🏠</a>
-  <img class="arcade-logo" src="icon-192.png" alt="Mega Arcade Kids" width="112" height="112">
+  <img class="hero-icon" src="icons/icon-192.png" alt="Mega Arcade Kids" width="96" height="96">
   <h1>Kids Arcade!</h1>
   <div class="subtitle">Tap a game and start playing!</div>
-  <div class="game-count">34 games to explore ✨</div>
+  <div class="game-count">35 games to explore ✨</div>
+  <button class="install-btn" id="installBtn" type="button">📲 Install app</button>
+  <div class="install-tip" id="installTip">To install: tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</div>
 </header>
 
 <div class="page">
@@ -320,7 +350,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
       <div class="section-icon">🏃</div>
       <div class="section-title">Action &amp; Reflex</div>
       <div class="section-line"></div>
-      <div class="section-count">12 games</div>
+      <div class="section-count">11 games</div>
     </div>
     <div class="grid">
 
@@ -398,14 +428,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
         <div class="badge new">New</div>
         <div class="card-emoji">🧸</div>
         <div class="card-name">Claw Master!</div>
-        <div class="card-desc">Grab prizes &amp; win the crown!</div>
-      </a>
-
-      <a class="card action" href="chickfling.html">
-        <div class="badge new">New</div>
-        <div class="card-emoji">🐥</div>
-        <div class="card-name">Chick Fling!</div>
-        <div class="card-desc">Sling chicks &amp; pop the slimes!</div>
+        <div class="card-desc">Grab the prizes &amp; win them all!</div>
       </a>
 
     </div>
@@ -419,7 +442,7 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
       <div class="section-icon">🧠</div>
       <div class="section-title">Thinking &amp; Puzzle</div>
       <div class="section-line"></div>
-      <div class="section-count">4 games</div>
+      <div class="section-count">6 games</div>
     </div>
     <div class="grid">
 
@@ -449,6 +472,20 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
         <div class="card-emoji">🎨</div>
         <div class="card-name">Paint by Number!</div>
         <div class="card-desc">Color by number to reveal art!</div>
+      </a>
+
+      <a class="card puzzle" href="slingbirds.html">
+        <div class="badge hot">Hot</div>
+        <div class="card-emoji">🐦</div>
+        <div class="card-name">Sling Birds!</div>
+        <div class="card-desc">Fling birds &amp; pop the slimes!</div>
+      </a>
+
+      <a class="card puzzle" href="chickfling.html">
+        <div class="badge new">New</div>
+        <div class="card-emoji">🐥</div>
+        <div class="card-name">Chick Fling!</div>
+        <div class="card-desc">Sling chicks &amp; pop the slimes!</div>
       </a>
 
     </div>
@@ -559,9 +596,36 @@ footer a { color: rgba(199,184,255,.35); text-decoration: none; }
 
 <footer>
   <a href="https://johnlaz.github.io/cathyshood/">🏠 Back to Cathy's Neighborhood</a>
-  &nbsp;·&nbsp; 34 games &nbsp;·&nbsp; ✨ More coming soon!
+  &nbsp;·&nbsp; 35 games &nbsp;·&nbsp; ✨ More coming soon!
 </footer>
 
 
+
+
+<script>
+/* PWA: offline support + install */
+(function () {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {});
+    });
+  }
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var btn = document.getElementById('installBtn'), tip = document.getElementById('installTip'), deferred = null;
+  if (standalone) return;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferred = e; btn.classList.add('show');
+  });
+  btn.addEventListener('click', function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function () { deferred = null; btn.classList.remove('show'); });
+  });
+  window.addEventListener('appinstalled', function () { btn.classList.remove('show'); tip.classList.remove('show'); });
+  // iPhone / iPad Safari has no install prompt: show the manual steps
+  var ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) tip.classList.add('show');
+})();
+</script>
 
 </body></html>
