@@ -5,11 +5,11 @@
    - To force everyone onto a fresh cache after a big change, bump VERSION.
    - Only caches starting with "arcade-kids-" are ever deleted (other apps on this domain are untouched). */
 const PREFIX = 'arcade-kids-';
-const VERSION = PREFIX + 'v3';
+const VERSION = PREFIX + 'v4';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
-  'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/clawmaster-180.png'
+  'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/clawmaster-180.png', 'icons/marble-128.png'
 ];
 const GAMES = [
   "bakeyboss.html",
