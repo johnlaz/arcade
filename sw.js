@@ -9,7 +9,7 @@ const VERSION = PREFIX + 'v5';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
-  'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/clawmaster-180.png', 'icons/marble-128.png', 'icons/domino-128.png'
+  'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/marble-128.png', 'icons/domino-128.png'
 ];
 const GAMES = [
   "bakeyboss.html",
